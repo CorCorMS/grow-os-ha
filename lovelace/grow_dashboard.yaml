@@ -217,6 +217,9 @@ views:
     sections:
       - type: grid
         cards:
+          - type: energy-date-selection
+      - type: grid
+        cards:
           - type: markdown
             content: |
               # Energie und Kosten
