@@ -48,7 +48,12 @@ template:
             {% set hum = states('sensor.grow_humidity_fused') | float(0) %}
             {% set max_temp = state_attr('sensor.grow_policy_registry_v4','max_temp') | float(22) %}
             {% set max_hum = state_attr('sensor.grow_policy_registry_v4','max_humidity') | float(70) %}
-            {{ 'off' if locked else 'on' if temp > max_temp + 2 or hum > max_hum else 'off' }}
+            {% set vent_is_on = is_state(state_attr('sensor.grow_device_registry', 'vent'), 'on') %}
+            {{ 'off' if locked
+               else 'on' if hum > max_hum
+               else 'on' if temp > max_temp + 2
+               else 'on' if vent_is_on and temp > max_temp
+               else 'off' }}
           pump1_command: >
             {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_irrigation_lock','on') %}
             {% set soil = states(state_attr('sensor.grow_device_registry', 'soil1')) | float(0) %}
