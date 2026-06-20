@@ -363,7 +363,7 @@ views:
               # Die Entscheidungskette
               **Register** geben feste Regeln vor -> **Arbiter** bewertet Ist-Werte -> **Aktoren** fuehren den Befehl aus. Nur der Arbiter entscheidet.
       - type: grid
-        columns: 2
+        columns: 3
         cards:
           - type: tile
             entity: sensor.grow_policy_registry_v4
@@ -373,31 +373,76 @@ views:
             entity: sensor.grow_arbiter_v4
             name: Arbiter-Status
             icon: mdi:scale-balance
+          - type: tile
+            entity: sensor.grow_v4_vent_command_mirror
+            name: Abluftbefehl
+            icon: mdi:fan
       - type: grid
         cards:
           - type: markdown
             content: |
-              ## Entscheidung aktuell
-              Diese Werte sind reine Arbiter-Mirrors. Sie beschreiben, was die Aktorebene ausfuehren soll.
+              ## Systemueberblick
+              Der Arbiter bewertet nur Ist-Werte und Register. Die Karten unten zeigen getrennt, was gerade gemessen wird und was daraus als Befehl entsteht.
       - type: grid
         columns: 2
         cards:
-          - type: entities
-            title: Ist-Werte
-            entities:
-              - sensor.grow_v4_temperature_mirror
-              - sensor.grow_v4_humidity_mirror
-              - sensor.grow_v4_soil_1_mirror
-              - sensor.grow_v4_soil_2_mirror
-              - sensor.grow_v4_tank_mirror
-          - type: entities
-            title: Ausgaben des Arbiters
-            entities:
-              - sensor.grow_v4_light_command_mirror
-              - sensor.grow_v4_heat_command_mirror
-              - sensor.grow_v4_vent_command_mirror
-              - sensor.grow_v4_pump_1_command_mirror
-              - sensor.grow_v4_pump_2_command_mirror
+          - type: gauge
+            entity: sensor.grow_v4_temperature_mirror
+            name: Temperatur
+            min: 10
+            max: 40
+            needle: true
+          - type: gauge
+            entity: sensor.grow_v4_humidity_mirror
+            name: Luftfeuchtigkeit
+            min: 0
+            max: 100
+            needle: true
+          - type: gauge
+            entity: sensor.grow_v4_soil_1_mirror
+            name: Boden Pflanze 1
+            min: 0
+            max: 100
+            needle: true
+          - type: gauge
+            entity: sensor.grow_v4_soil_2_mirror
+            name: Boden Pflanze 2
+            min: 0
+            max: 100
+            needle: true
+      - type: grid
+        cards:
+          - type: markdown
+            content: |
+              ## Aktorbefehle
+              Diese Schaltbefehle kommen direkt aus dem Arbiter und werden von der Aktorebene nur gespiegelt.
+      - type: grid
+        columns: 3
+        cards:
+          - type: tile
+            entity: sensor.grow_v4_light_command_mirror
+            name: Licht
+            icon: mdi:lightbulb
+          - type: tile
+            entity: sensor.grow_v4_heat_command_mirror
+            name: Heizung
+            icon: mdi:radiator
+          - type: tile
+            entity: sensor.grow_v4_vent_command_mirror
+            name: Abluft
+            icon: mdi:fan
+          - type: tile
+            entity: sensor.grow_v4_pump_1_command_mirror
+            name: Pumpe 1
+            icon: mdi:water-pump
+          - type: tile
+            entity: sensor.grow_v4_pump_2_command_mirror
+            name: Pumpe 2
+            icon: mdi:water-pump
+          - type: tile
+            entity: sensor.grow_v4_tank_mirror
+            name: Wassertank
+            icon: mdi:water
       - type: grid
         cards:
           - type: markdown
@@ -405,34 +450,51 @@ views:
               ## Abluft-Wirkungspruefung
               Hier siehst du, ob die Abluft wegen ausbleibender Verbesserung gesperrt wurde. Nach 5 Minuten wird geprueft, ob sich der relevante Wert verbessert hat. Falls nicht, bleibt die Abluft fuer 30 Minuten gesperrt und versucht es danach erneut.
       - type: grid
+        columns: 3
+        cards:
+          - type: tile
+            entity: input_datetime.grow_vent_retry_at
+            name: Naechster Retry
+            icon: mdi:timer-refresh
+          - type: tile
+            entity: input_datetime.grow_vent_probe_started_at
+            name: Pruefung gestartet
+            icon: mdi:timeline-clock
+          - type: tile
+            entity: sensor.grow_arbiter_v4
+            name: Regelgrund
+            icon: mdi:information-outline
+            state_content:
+              - attribute: vent_reason
+          - type: tile
+            entity: sensor.grow_arbiter_v4
+            name: Abluft gesperrt
+            icon: mdi:fan-alert
+            state_content:
+              - attribute: vent_cooldown_active
+          - type: tile
+            entity: sensor.grow_arbiter_v4
+            name: 5-Min-Pruefung
+            icon: mdi:progress-clock
+            state_content:
+              - attribute: vent_probe_active
+          - type: tile
+            entity: sensor.grow_arbiter_v4
+            name: Pruefgrund
+            icon: mdi:clipboard-pulse
+            state_content:
+              - attribute: vent_probe_reason
+      - type: grid
         columns: 2
         cards:
-          - type: entities
-            title: Sperrstatus
-            entities:
-              - entity: sensor.grow_arbiter_v4
-                type: attribute
-                attribute: vent_cooldown_active
-                name: Abluft gesperrt
-              - entity: sensor.grow_arbiter_v4
-                type: attribute
-                attribute: vent_reason
-                name: Regelgrund
-              - entity: sensor.grow_arbiter_v4
-                type: attribute
-                attribute: vent_probe_active
-                name: 5-Minuten-Pruefung aktiv
-              - entity: sensor.grow_arbiter_v4
-                type: attribute
-                attribute: vent_probe_reason
-                name: Pruefgrund
-          - type: entities
-            title: Retry und Ausgangswerte
-            entities:
-              - input_datetime.grow_vent_retry_at
-              - input_datetime.grow_vent_probe_started_at
-              - input_number.grow_vent_probe_baseline_temp
-              - input_number.grow_vent_probe_baseline_humidity
+          - type: tile
+            entity: input_number.grow_vent_probe_baseline_temp
+            name: Ausgang Temperatur
+            icon: mdi:thermometer-chevron-down
+          - type: tile
+            entity: input_number.grow_vent_probe_baseline_humidity
+            name: Ausgang Luftfeuchte
+            icon: mdi:water-percent
 
   # Compares active setpoints and live values, plus a concise all-phase reference.
   - title: Phasen
