@@ -1,0 +1,290 @@
+﻿###############################################################################
+# GROW OS HA v4.0 - PLANT BUDDY TRENDS (ADVISORY ONLY)
+# Rolling statistics and timed Plant Buddy reviews. These sensors do not feed
+# the Arbiter and never control hardware; they only make advice more useful.
+###############################################################################
+
+sensor:
+  # One-hour reference windows for climate. The Buddy reviews them every 5 min.
+  - platform: statistics
+    name: Grow Buddy Temperature Hour Mean Raw
+    unique_id: grow_buddy_temperature_hour_mean_raw
+    entity_id: sensor.grow_v4_temperature_mirror
+    state_characteristic: mean
+    max_age: { hours: 1 }
+    sampling_size: 240
+  - platform: statistics
+    name: Grow Buddy Temperature Hour Change Raw
+    unique_id: grow_buddy_temperature_hour_change_raw
+    entity_id: sensor.grow_v4_temperature_mirror
+    state_characteristic: change
+    max_age: { hours: 1 }
+    sampling_size: 240
+  - platform: statistics
+    name: Grow Buddy Humidity Hour Mean Raw
+    unique_id: grow_buddy_humidity_hour_mean_raw
+    entity_id: sensor.grow_v4_humidity_mirror
+    state_characteristic: mean
+    max_age: { hours: 1 }
+    sampling_size: 240
+  - platform: statistics
+    name: Grow Buddy Humidity Hour Change Raw
+    unique_id: grow_buddy_humidity_hour_change_raw
+    entity_id: sensor.grow_v4_humidity_mirror
+    state_characteristic: change
+    max_age: { hours: 1 }
+    sampling_size: 240
+  # The light on-ratio exposes interruptions during the planned light window.
+  - platform: history_stats
+    name: Grow Buddy Light On Ratio Hour
+    unique_id: grow_buddy_light_on_ratio_hour
+    entity_id: sensor.grow_v4_light_command_mirror
+    state: "on"
+    type: ratio
+    start: "{{ now() - timedelta(hours=1) }}"
+    end: "{{ now() }}"
+  # Six-hour soil references smooth transient readings before giving advice.
+  - platform: statistics
+    name: Grow Buddy Soil 1 Six Hour Mean
+    unique_id: grow_buddy_soil1_six_hour_mean
+    entity_id: sensor.grow_v4_soil_1_mirror
+    state_characteristic: mean
+    max_age: { hours: 6 }
+    sampling_size: 720
+  - platform: statistics
+    name: Grow Buddy Soil 1 Six Hour Change
+    unique_id: grow_buddy_soil1_six_hour_change
+    entity_id: sensor.grow_v4_soil_1_mirror
+    state_characteristic: change
+    max_age: { hours: 6 }
+    sampling_size: 720
+  - platform: statistics
+    name: Grow Buddy Soil 2 Six Hour Mean
+    unique_id: grow_buddy_soil2_six_hour_mean
+    entity_id: sensor.grow_v4_soil_2_mirror
+    state_characteristic: mean
+    max_age: { hours: 6 }
+    sampling_size: 720
+  - platform: statistics
+    name: Grow Buddy Soil 2 Six Hour Change
+    unique_id: grow_buddy_soil2_six_hour_change
+    entity_id: sensor.grow_v4_soil_2_mirror
+    state_characteristic: change
+    max_age: { hours: 6 }
+    sampling_size: 720
+
+shell_command:
+  # Snapshot persistence keeps the latest advisory context across restarts.
+  grow_v4_plant_buddy_snapshot_write: >-
+    python3 /config/packages/grow_os_ha/grow_os_ha_plant_buddy_writer.py
+    '{{ {
+      "_meta": {
+        "version": "4.0",
+        "purpose": "Latest Plant Buddy advisory snapshot with timestamp for stale detection."
+      },
+      "updated_at": now().isoformat(),
+      "buddy_status": state_attr("sensor.grow_plant_buddy", "status"),
+      "overall_stress": states("sensor.grow_plant_buddy"),
+      "forecast": state_attr("sensor.grow_plant_buddy", "forecast"),
+      "plant_1": {
+        "profile": state_attr("sensor.grow_plant_1_stress", "profile_id"),
+        "stress": states("sensor.grow_plant_1_stress"),
+        "temperature_stress": state_attr("sensor.grow_plant_1_stress", "temperature_stress"),
+        "humidity_stress": state_attr("sensor.grow_plant_1_stress", "humidity_stress"),
+        "soil_stress": state_attr("sensor.grow_plant_1_stress", "soil_stress"),
+        "light_stress": state_attr("sensor.grow_plant_1_stress", "light_stress"),
+        "recommendation": state_attr("sensor.grow_plant_1_stress", "recommendation"),
+        "weighted_soil": states("sensor.grow_plant_1_soil_review")
+      },
+      "plant_2": {
+        "profile": state_attr("sensor.grow_plant_2_stress", "profile_id"),
+        "stress": states("sensor.grow_plant_2_stress"),
+        "temperature_stress": state_attr("sensor.grow_plant_2_stress", "temperature_stress"),
+        "humidity_stress": state_attr("sensor.grow_plant_2_stress", "humidity_stress"),
+        "soil_stress": state_attr("sensor.grow_plant_2_stress", "soil_stress"),
+        "light_stress": state_attr("sensor.grow_plant_2_stress", "light_stress"),
+        "recommendation": state_attr("sensor.grow_plant_2_stress", "recommendation"),
+        "weighted_soil": states("sensor.grow_plant_2_soil_review")
+      },
+      "climate_review": {
+        "temperature_now": state_attr("sensor.grow_plant_buddy_climate_review", "temperature_now"),
+        "temperature_next_hour": state_attr("sensor.grow_plant_buddy_climate_review", "temperature_next_hour"),
+        "humidity_now": state_attr("sensor.grow_plant_buddy_climate_review", "humidity_now"),
+        "humidity_next_hour": state_attr("sensor.grow_plant_buddy_climate_review", "humidity_next_hour"),
+        "light_on_ratio_hour": state_attr("sensor.grow_plant_buddy_climate_review", "light_on_ratio_hour"),
+        "recommendation": state_attr("sensor.grow_plant_buddy_climate_review", "recommendation")
+      }
+    } | to_json }}'
+
+automation:
+  - alias: Grow v4 Plant Buddy Warmup Pulse
+    # Trigger-based template sensors cannot be force-refreshed directly, so
+    # this event nudges them once the core sensors are typically available.
+    mode: single
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - delay: "00:00:45"
+      - event: grow_v4_plant_buddy_warmup
+
+  - alias: Grow v4 Persist Plant Buddy Snapshot
+    # The snapshot is advisory-only state history for dashboards and future
+    # automations. It never feeds actuator logic directly.
+    mode: single
+    trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/5"
+      - platform: state
+        entity_id: sensor.grow_arbiter_v4
+        to: "ok"
+    action:
+      - service: shell_command.grow_v4_plant_buddy_snapshot_write
+
+template:
+  # A five-minute climate review projects the current one-hour direction ahead.
+  - trigger:
+      - platform: homeassistant
+        event: start
+      - platform: event
+        event_type: grow_v4_plant_buddy_warmup
+      - platform: state
+        entity_id: sensor.grow_arbiter_v4
+        to: "ok"
+      - platform: state
+        entity_id:
+          - sensor.grow_v4_temperature_mirror
+          - sensor.grow_v4_humidity_mirror
+          - sensor.grow_v4_light_command_mirror
+      - platform: time_pattern
+        minutes: "/5"
+    sensor:
+      - name: Grow Plant Buddy Climate Review
+        unique_id: grow_plant_buddy_climate_review
+        icon: mdi:weather-partly-cloudy
+        state: reviewed
+        attributes:
+          temperature_now: "{{ state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) }}"
+          temperature_hour_mean: >
+            {% set now_value = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+            {% set mean = states('sensor.grow_buddy_temperature_hour_mean_raw') | float(0) %}
+            {% set coverage = state_attr('sensor.grow_buddy_temperature_hour_mean_raw', 'age_coverage_ratio') | float(0) %}
+            {{ (mean if mean > 0 and coverage >= 0.15 and mean > (now_value - 5) and mean < (now_value + 5) else now_value) | round(1) }}
+          temperature_hour_change: >
+            {% set change = states('sensor.grow_buddy_temperature_hour_change_raw') | float(0) %}
+            {% set coverage = state_attr('sensor.grow_buddy_temperature_hour_change_raw', 'age_coverage_ratio') | float(0) %}
+            {{ (change if coverage >= 0.15 and change > -5 and change < 5 else 0) | round(1) }}
+          temperature_next_hour: >
+            {% set now_value = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+            {% set change = states('sensor.grow_buddy_temperature_hour_change_raw') | float(0) %}
+            {% set coverage = state_attr('sensor.grow_buddy_temperature_hour_change_raw', 'age_coverage_ratio') | float(0) %}
+            {{ (now_value + (change if coverage >= 0.15 and change > -5 and change < 5 else 0)) | round(1) }}
+          humidity_now: "{{ state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) }}"
+          humidity_hour_mean: >
+            {% set now_value = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+            {% set mean = states('sensor.grow_buddy_humidity_hour_mean_raw') | float(0) %}
+            {% set coverage = state_attr('sensor.grow_buddy_humidity_hour_mean_raw', 'age_coverage_ratio') | float(0) %}
+            {{ (mean if mean > 0 and coverage >= 0.15 and mean > (now_value - 15) and mean < (now_value + 15) else now_value) | round(1) }}
+          humidity_hour_change: >
+            {% set change = states('sensor.grow_buddy_humidity_hour_change_raw') | float(0) %}
+            {% set coverage = state_attr('sensor.grow_buddy_humidity_hour_change_raw', 'age_coverage_ratio') | float(0) %}
+            {{ (change if coverage >= 0.15 and change > -20 and change < 20 else 0) | round(1) }}
+          humidity_next_hour: >
+            {% set now_value = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+            {% set change = states('sensor.grow_buddy_humidity_hour_change_raw') | float(0) %}
+            {% set coverage = state_attr('sensor.grow_buddy_humidity_hour_change_raw', 'age_coverage_ratio') | float(0) %}
+            {{ (now_value + (change if coverage >= 0.15 and change > -20 and change < 20 else 0)) | round(1) }}
+          light_on_ratio_hour: "{{ states('sensor.grow_buddy_light_on_ratio_hour') | float(0) | round(0) }}"
+          recommendation: >
+            {% set t = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+            {% set raw_tc = states('sensor.grow_buddy_temperature_hour_change_raw') | float(0) %}
+            {% set tc_cov = state_attr('sensor.grow_buddy_temperature_hour_change_raw', 'age_coverage_ratio') | float(0) %}
+            {% set tc = raw_tc if tc_cov >= 0.15 and raw_tc > -5 and raw_tc < 5 else 0 %}
+            {% set h = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+            {% set raw_hc = states('sensor.grow_buddy_humidity_hour_change_raw') | float(0) %}
+            {% set hc_cov = state_attr('sensor.grow_buddy_humidity_hour_change_raw', 'age_coverage_ratio') | float(0) %}
+            {% set hc = raw_hc if hc_cov >= 0.15 and raw_hc > -20 and raw_hc < 20 else 0 %}
+            {% set min_t = state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(18) %}
+            {% set max_t = state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(22) %}
+            {% set min_h = state_attr('sensor.grow_policy_registry_v4', 'min_humidity') | float(50) %}
+            {% set max_h = state_attr('sensor.grow_policy_registry_v4', 'max_humidity') | float(70) %}
+            {% if t == 0 or h == 0 %}Klimadaten werden nach dem Start neu aufgebaut.
+            {% elif t + tc < min_t or t + tc > max_t %}Temperaturtrend: in der naechsten Stunde kann der Sollbereich verlassen werden.
+            {% elif h + hc < min_h or h + hc > max_h %}Feuchtetrend: in der naechsten Stunde kann der Sollbereich verlassen werden.
+            {% else %}Klimaentwicklung der letzten Stunde ist stabil.
+            {% endif %}
+
+  # Soil is intentionally slower: sampled every 30 min and 70/30 weighted
+  # between the current sample and the six-hour mean.
+  - trigger:
+      - platform: homeassistant
+        event: start
+      - platform: event
+        event_type: grow_v4_plant_buddy_warmup
+      - platform: state
+        entity_id: sensor.grow_arbiter_v4
+        to: "ok"
+      - platform: state
+        entity_id:
+          - sensor.grow_v4_soil_1_mirror
+          - sensor.grow_v4_soil_2_mirror
+      - platform: time_pattern
+        minutes: "/30"
+    sensor:
+      - name: Grow Plant 1 Soil Review
+        unique_id: grow_plant_1_soil_review
+        icon: mdi:flower
+        state: >
+          {% set now_value = state_attr('sensor.grow_arbiter_v4', 'soil1') | float(0) %}
+          {% set mean = states('sensor.grow_buddy_soil_1_six_hour_mean') | float(0) %}
+          {% set source = now_value if now_value > 0 else mean %}
+          {% set reference = mean if mean > 0 else source %}
+          {{ ((source * 0.7) + (reference * 0.3)) | round(1) }}
+        attributes:
+          six_hour_mean: "{{ states('sensor.grow_buddy_soil_1_six_hour_mean') | float(0) | round(1) }}"
+          six_hour_change: "{{ states('sensor.grow_buddy_soil_1_six_hour_change') | float(0) | round(1) }}"
+          recommendation: >
+            {% set now_value = state_attr('sensor.grow_arbiter_v4', 'soil1') | float(0) %}
+            {% set mean = states('sensor.grow_buddy_soil_1_six_hour_mean') | float(0) %}
+            {% set source = now_value if now_value > 0 else mean %}
+            {% set reference = mean if mean > 0 else source %}
+            {% set weighted = ((source * 0.7) + (reference * 0.3)) %}
+            {% set change = states('sensor.grow_buddy_soil_1_six_hour_change') | float(0) %}
+            {% set min = state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(50) %}
+            {% set max = state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(75) %}
+            {% if weighted < min %}Pflanze 1: gewichtete Bodenfeuchte unter Soll, Bewaesserung vorbereiten.
+            {% elif weighted > max %}Pflanze 1: gewichtete Bodenfeuchte ueber Soll, keine zusaetzliche Bewaesserung.
+            {% elif change < -10 %}Pflanze 1: Bodenfeuchte faellt deutlich, Verlauf beobachten.
+            {% else %}Pflanze 1: Bodenfeuchteverlauf stabil.
+            {% endif %}
+      - name: Grow Plant 2 Soil Review
+        unique_id: grow_plant_2_soil_review
+        icon: mdi:flower
+        state: >
+          {% set now_value = state_attr('sensor.grow_arbiter_v4', 'soil2') | float(0) %}
+          {% set mean = states('sensor.grow_buddy_soil_2_six_hour_mean') | float(0) %}
+          {% set source = now_value if now_value > 0 else mean %}
+          {% set reference = mean if mean > 0 else source %}
+          {{ ((source * 0.7) + (reference * 0.3)) | round(1) }}
+        attributes:
+          six_hour_mean: "{{ states('sensor.grow_buddy_soil_2_six_hour_mean') | float(0) | round(1) }}"
+          six_hour_change: "{{ states('sensor.grow_buddy_soil_2_six_hour_change') | float(0) | round(1) }}"
+          recommendation: >
+            {% set now_value = state_attr('sensor.grow_arbiter_v4', 'soil2') | float(0) %}
+            {% set mean = states('sensor.grow_buddy_soil_2_six_hour_mean') | float(0) %}
+            {% set source = now_value if now_value > 0 else mean %}
+            {% set reference = mean if mean > 0 else source %}
+            {% set weighted = ((source * 0.7) + (reference * 0.3)) %}
+            {% set change = states('sensor.grow_buddy_soil_2_six_hour_change') | float(0) %}
+            {% set min = state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(50) %}
+            {% set max = state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(75) %}
+            {% if weighted < min %}Pflanze 2: gewichtete Bodenfeuchte unter Soll, Bewaesserung vorbereiten.
+            {% elif weighted > max %}Pflanze 2: gewichtete Bodenfeuchte ueber Soll, keine zusaetzliche Bewaesserung.
+            {% elif change < -10 %}Pflanze 2: Bodenfeuchte faellt deutlich, Verlauf beobachten.
+            {% else %}Pflanze 2: Bodenfeuchteverlauf stabil.
+            {% endif %}
+
+
+

@@ -1,4 +1,4 @@
-# GROW OS HA v4.0
+﻿# GROW OS HA v4.0
 
 Arbiter-first grow automation for Home Assistant with a strict single-source-of-truth architecture.
 
@@ -19,10 +19,21 @@ GROW OS HA v4.0 is built around one central idea:
 - energy, cost and power visibility
 - Home Assistant OS installer add-on for easy deployment
 
+## Live v4.0 status
+
+- Grow OS HA is running on the final v4 live structure in Home Assistant OS
+- active package path: `packages/grow_os_ha`
+- active dashboard path: `lovelace/grow_os_ha_dashboard.yaml`
+- dashboard id: `grow-os-ha`
+- Home Assistant configuration check passed
+- dashboard entities and project references were verified against the live HA registry
+- Grow-specific unit and statistics issues were cleaned up
+- final Grow-only debug finished without relevant open Grow errors
+
 ## Quick install on Home Assistant OS
 
 1. Open Home Assistant.
-2. Go to Settings → Add-ons → Add-on Store.
+2. Go to Settings -> Add-ons -> Add-on Store.
 3. Add this repository under Repositories:
    - `https://github.com/CorCorMS/grow-os-ha`
 4. Install `Grow OS HA v4 Installer`.
@@ -33,8 +44,8 @@ GROW OS HA v4.0 is built around one central idea:
 
 The installer copies:
 
-- `packages/grow/*`
-- `lovelace/grow_dashboard.yaml`
+- `packages/grow_os_ha/*`
+- `lovelace/grow_os_ha_dashboard.yaml`
 - a configuration merge snippet into `/config`
 - an optional sanitized ESPHome example
 
@@ -42,23 +53,23 @@ The installer copies:
 
 Copy these into your Home Assistant `/config` directory:
 
-- [packages/grow](packages/grow)
-- [lovelace/grow_dashboard.yaml](lovelace/grow_dashboard.yaml)
+- [packages/grow_os_ha](packages/grow_os_ha)
+- [lovelace/grow_os_ha_dashboard.yaml](lovelace/grow_os_ha_dashboard.yaml)
 
 Then merge:
 
-- [docs/configuration_snippet.yaml](docs/configuration_snippet.yaml)
+- [docs/grow_os_ha_configuration_snippet.yaml](docs/grow_os_ha_configuration_snippet.yaml)
 
 into your existing `configuration.yaml`.
 
 ## Repository structure
 
-- [packages/grow](packages/grow) — the current v4.0 runtime packages
-- [lovelace/grow_dashboard.yaml](lovelace/grow_dashboard.yaml) — dashboard v4
-- [grow_os_ha_installer](grow_os_ha_installer) — HAOS installer add-on
-- [ARCHITECTURE.md](ARCHITECTURE.md) — system design
-- [INSTALLATION.md](INSTALLATION.md) — installation details
-- [CHANGELOG.md](CHANGELOG.md) — version history
+- [packages/grow_os_ha](packages/grow_os_ha) - the current v4.0 runtime packages
+- [lovelace/grow_os_ha_dashboard.yaml](lovelace/grow_os_ha_dashboard.yaml) - dashboard v4
+- [grow_os_ha_installer](grow_os_ha_installer) - HAOS installer add-on
+- [ARCHITECTURE.md](ARCHITECTURE.md) - system design
+- [INSTALLATION.md](INSTALLATION.md) - installation details
+- [CHANGELOG.md](CHANGELOG.md) - version history
 
 ## Architecture in one glance
 
@@ -106,7 +117,7 @@ This repository is prepared so that local secrets and runtime state do not belon
 
 Use the safe example here:
 
-- [esphome/grow.v4.example.yaml](esphome/grow.v4.example.yaml)
+- [esphome/grow_os_ha.example.yaml](esphome/grow_os_ha.example.yaml)
 
 ## Version
 

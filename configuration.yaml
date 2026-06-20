@@ -1,8 +1,8 @@
-# GROW v4.0 — Home Assistant entry point.
+﻿# GROW OS HA v4.0 - Home Assistant entry point.
 # Packages contain the single-source Arbiter architecture; only the v4
 # Energy-style dashboard is exposed in the sidebar.
 homeassistant:
-  packages: !include_dir_named packages/grow
+  packages: !include_dir_named packages/grow_os_ha
 
 # Loads default set of integrations. Do not remove.
 default_config:
@@ -22,9 +22,12 @@ http:
 
 lovelace:
   dashboards:
-    grow-arbiter-v4:
+    grow-os-ha:
       mode: yaml
-      title: Grow v4.0
+      title: Grow OS HA
       icon: mdi:cog-box
       show_in_sidebar: true
-      filename: lovelace/grow_dashboard.yaml
+      filename: lovelace/grow_os_ha_dashboard.yaml
+
+
+

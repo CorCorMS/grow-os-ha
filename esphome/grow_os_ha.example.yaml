@@ -1,0 +1,131 @@
+﻿# GROW OS HA v4.0 â€” sanitized ESPHome example.
+# Replace secrets, encryption key and OTA password for your own device.
+
+esphome:
+  name: grow
+  friendly_name: Grow
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+  encryption:
+    key: "REPLACE_WITH_YOUR_OWN_32_BYTE_BASE64_KEY"
+
+ota:
+  - platform: esphome
+    password: "REPLACE_WITH_YOUR_OWN_OTA_PASSWORD"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "Grow Fallback Hotspot"
+    password: "REPLACE_WITH_OWN_FALLBACK_PASSWORD"
+
+captive_portal:
+
+sensor:
+  - platform: dht
+    pin: GPIO4
+    model: DHT11
+    update_interval: 30s
+    temperature:
+      name: "Grow Temperatur Unten"
+      id: grow_temp_unten
+    humidity:
+      name: "Grow Luftfeuchtigkeit Unten"
+      id: grow_humidity_unten
+
+  - platform: adc
+    pin: GPIO34
+    id: soil_raw_1
+    name: "Bodenfeuchte Pflanze 1 Roh"
+    attenuation: 12db
+    update_interval: 10s
+
+  - platform: template
+    name: "Bodenfeuchte Pflanze 1"
+    id: soil_1
+    unit_of_measurement: "%"
+    lambda: |-
+      float x = id(soil_raw_1).state;
+      if (isnan(x)) return NAN;
+      float dry = 2.70;
+      float wet = 1.20;
+      float norm = (dry - x) / (dry - wet);
+      if (norm < 0) norm = 0;
+      if (norm > 1) norm = 1;
+      return norm * 100.0;
+
+  - platform: adc
+    pin: GPIO35
+    id: soil_raw_2
+    name: "Bodenfeuchte Pflanze 2 Roh"
+    attenuation: 12db
+    update_interval: 10s
+
+  - platform: template
+    name: "Bodenfeuchte Pflanze 2"
+    id: soil_2
+    unit_of_measurement: "%"
+    lambda: |-
+      float x = id(soil_raw_2).state;
+      if (isnan(x)) return NAN;
+      float dry = 2.70;
+      float wet = 1.20;
+      float norm = (dry - x) / (dry - wet);
+      if (norm < 0) norm = 0;
+      if (norm > 1) norm = 1;
+      return norm * 100.0;
+
+  - platform: ultrasonic
+    trigger_pin: GPIO26
+    echo_pin: GPIO27
+    name: "Wassertank Abstand"
+    id: water_distance
+    update_interval: 20s
+
+  - platform: template
+    name: "Wassertank FÃ¼llstand"
+    id: water_level
+    unit_of_measurement: "%"
+    lambda: |-
+      if (isnan(id(water_distance).state)) return NAN;
+      float max_distance = 22.0;
+      float distance = id(water_distance).state * 100.0;
+      float level = (1.0 - (distance / max_distance)) * 100.0;
+      if (level < 0) level = 0;
+      if (level > 100) level = 100;
+      return level;
+
+  - platform: wifi_signal
+    name: "Growbox WLAN Signal"
+    update_interval: 60s
+
+switch:
+  - platform: gpio
+    pin:
+      number: GPIO16
+      inverted: true
+    name: "Pumpe Pflanze 1"
+    id: pump_1
+    restore_mode: ALWAYS_OFF
+
+  - platform: gpio
+    pin:
+      number: GPIO17
+      inverted: true
+    name: "Pumpe Pflanze 2"
+    id: pump_2
+    restore_mode: ALWAYS_OFF
+
+status_led:
+  pin: GPIO2
+
+

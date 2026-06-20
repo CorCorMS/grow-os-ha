@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 ## v4.0.0
 
@@ -11,4 +11,7 @@
 - energy and cost overview aligned with cabinet and Shelly measurements
 - legacy restored/unavailable Grow entities cleaned out of Home Assistant
 - HAOS installer add-on added to repository
-
+- live Home Assistant structure migrated to `grow_os_ha`
+- final dashboard path migrated to `lovelace/grow_os_ha_dashboard.yaml`
+- dashboard, package references and live entity mapping verified
+- Grow-specific temperature unit/statistics issue cleaned up

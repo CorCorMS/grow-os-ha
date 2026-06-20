@@ -1,4 +1,4 @@
-# GROW OS HA v4.0 Architecture
+﻿# GROW OS HA v4.0 Architecture
 
 ## Core principle
 
@@ -14,7 +14,7 @@ GROW OS HA v4.0 uses a strict single-source architecture.
 
 ### Inputs
 
-[packages/grow/grow_inputs.yaml](packages/grow/grow_inputs.yaml)
+[packages/grow_os_ha/grow_os_ha_inputs.yaml](packages/grow_os_ha/grow_os_ha_inputs.yaml)
 
 Contains editable helpers:
 
@@ -27,7 +27,7 @@ Contains editable helpers:
 
 ### Registers
 
-[packages/grow/grow_registry.yaml](packages/grow/grow_registry.yaml)
+[packages/grow_os_ha/grow_os_ha_registry.yaml](packages/grow_os_ha/grow_os_ha_registry.yaml)
 
 Provides:
 
@@ -38,7 +38,7 @@ Provides:
 
 ### Arbiter
 
-[packages/grow/grow_arbiter.yaml](packages/grow/grow_arbiter.yaml)
+[packages/grow_os_ha/grow_os_ha_arbiter.yaml](packages/grow_os_ha/grow_os_ha_arbiter.yaml)
 
 Evaluates:
 
@@ -58,26 +58,26 @@ Outputs:
 
 ### Actuators
 
-[packages/grow/grow_actuators.yaml](packages/grow/grow_actuators.yaml)
+[packages/grow_os_ha/grow_os_ha_actuators.yaml](packages/grow_os_ha/grow_os_ha_actuators.yaml)
 
 Contains execution-only automations. No policy logic lives here.
 
 ### Mirrors
 
-[packages/grow/grow_mirrors.yaml](packages/grow/grow_mirrors.yaml)
+[packages/grow_os_ha/grow_os_ha_mirrors.yaml](packages/grow_os_ha/grow_os_ha_mirrors.yaml)
 
 Read-only debug and dashboard values derived from the Arbiter and policy register.
 
 ### Device mapping persistence
 
-[packages/grow/grow_device_mapping.yaml](packages/grow/grow_device_mapping.yaml)
+[packages/grow_os_ha/grow_os_ha_device_mapping.yaml](packages/grow_os_ha/grow_os_ha_device_mapping.yaml)
 
 Lets the UI assign devices and sensors, then writes the confirmed mapping into JSON-backed registers.
 
 ### Plant Buddy
 
-- [packages/grow/grow_plant_buddy.yaml](packages/grow/grow_plant_buddy.yaml)
-- [packages/grow/grow_plant_buddy_trends.yaml](packages/grow/grow_plant_buddy_trends.yaml)
+- [packages/grow_os_ha/grow_os_ha_plant_buddy.yaml](packages/grow_os_ha/grow_os_ha_plant_buddy.yaml)
+- [packages/grow_os_ha/grow_os_ha_plant_buddy_trends.yaml](packages/grow_os_ha/grow_os_ha_plant_buddy_trends.yaml)
 
 Provides:
 
@@ -93,4 +93,5 @@ The repository includes a Home Assistant OS installer add-on:
 - [grow_os_ha_installer](grow_os_ha_installer)
 
 It copies the v4 payload into `/config` and provides a configuration snippet for merging into an existing installation.
+
 

@@ -1,0 +1,233 @@
+﻿###############################################################################
+# GROW OS HA v4.0 - PLANT BUDDY (ADVISORY ONLY)
+# The Plant Buddy reads the policy register, Arbiter values and confirmed
+# advisory plant profiles. It never changes a switch, helper, policy value
+# or Arbiter command.
+###############################################################################
+
+command_line:
+  # The loader resolves the confirmed profile names from JSON into flat,
+  # dashboard-friendly attributes that templates can read without ambiguity.
+  - sensor:
+      name: Grow Plant Profile Registry
+      unique_id: grow_plant_profile_registry
+      command: python3 /config/packages/grow_os_ha/grow_os_ha_plant_profile_loader.py
+      scan_interval: 300
+      value_template: "{{ value_json.state }}"
+      json_attributes:
+        - updated_at
+        - plant_1_profile_id
+        - plant_1_profile_label
+        - plant_1_temperature_min
+        - plant_1_temperature_max
+        - plant_1_humidity_min
+        - plant_1_humidity_max
+        - plant_1_soil_min
+        - plant_1_soil_max
+        - plant_1_light_hours_min
+        - plant_1_light_hours_max
+        - plant_2_profile_id
+        - plant_2_profile_label
+        - plant_2_temperature_min
+        - plant_2_temperature_max
+        - plant_2_humidity_min
+        - plant_2_humidity_max
+        - plant_2_soil_min
+        - plant_2_soil_max
+        - plant_2_light_hours_min
+        - plant_2_light_hours_max
+
+template:
+  - sensor:
+      # Shared climate/light components are calculated from the same read-only
+      # Arbiter sources used by the main dashboard, but compared to advisory
+      # plant profiles instead of Arbiter policy limits.
+      - name: Grow Plant 1 Stress
+        unique_id: grow_plant_1_stress
+        unit_of_measurement: "%"
+        icon: mdi:leaf
+        state: >
+          {% set temp = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+          {% set hum = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+          {% set soil = states('sensor.grow_plant_1_soil_review') | float(state_attr('sensor.grow_arbiter_v4', 'soil1') | float(0)) %}
+          {% set min_temp = state_attr('sensor.grow_plant_profile_registry', 'plant_1_temperature_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(18)) %}
+          {% set max_temp = state_attr('sensor.grow_plant_profile_registry', 'plant_1_temperature_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(22)) %}
+          {% set min_hum = state_attr('sensor.grow_plant_profile_registry', 'plant_1_humidity_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_humidity') | float(50)) %}
+          {% set max_hum = state_attr('sensor.grow_plant_profile_registry', 'plant_1_humidity_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_humidity') | float(70)) %}
+          {% set min_soil = state_attr('sensor.grow_plant_profile_registry', 'plant_1_soil_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(50)) %}
+          {% set max_soil = state_attr('sensor.grow_plant_profile_registry', 'plant_1_soil_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(75)) %}
+          {% set min_light = state_attr('sensor.grow_plant_profile_registry', 'plant_1_light_hours_min') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+          {% set max_light = state_attr('sensor.grow_plant_profile_registry', 'plant_1_light_hours_max') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+          {% set policy_light = state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0) %}
+          {% set ratio = state_attr('sensor.grow_plant_buddy_climate_review', 'light_on_ratio_hour') | float(0) %}
+          {% set now_hour = now().hour + now().minute / 60 %}
+          {% set expected_on = policy_light > 0 and now_hour >= 6 and now_hour < 6 + policy_light %}
+          {% set interruption_score = (100 - ratio) if expected_on else ratio %}
+          {% set profile_gap = (min_light - policy_light) * 10 if policy_light < min_light else (policy_light - max_light) * 10 if policy_light > max_light else 0 %}
+          {% set temp_score = (min_temp - temp) * 10 if temp < min_temp else (temp - max_temp) * 10 if temp > max_temp else 0 %}
+          {% set hum_score = (min_hum - hum) * 5 if hum < min_hum else (hum - max_hum) * 5 if hum > max_hum else 0 %}
+          {% set soil_score = (min_soil - soil) * 4 if soil < min_soil else (soil - max_soil) * 4 if soil > max_soil else 0 %}
+          {% set light_score = (interruption_score + profile_gap) / 2 %}
+          {{ [0, [100, ((temp_score + hum_score + soil_score + light_score) / 4)] | min] | max | round(0) }}
+        attributes:
+          profile_id: "{{ state_attr('sensor.grow_plant_profile_registry', 'plant_1_profile_id') | default('universal_indoor', true) }}"
+          profile_label: "{{ state_attr('sensor.grow_plant_profile_registry', 'plant_1_profile_label') | default('Universal Indoor', true) }}"
+          temperature_stress: >
+            {% set value = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+            {% set min = state_attr('sensor.grow_plant_profile_registry', 'plant_1_temperature_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(18)) %}
+            {% set max = state_attr('sensor.grow_plant_profile_registry', 'plant_1_temperature_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(22)) %}
+            {{ [0, ((min - value) * 10 if value < min else (value - max) * 10 if value > max else 0)] | max | round(0) }}
+          humidity_stress: >
+            {% set value = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+            {% set min = state_attr('sensor.grow_plant_profile_registry', 'plant_1_humidity_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_humidity') | float(50)) %}
+            {% set max = state_attr('sensor.grow_plant_profile_registry', 'plant_1_humidity_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_humidity') | float(70)) %}
+            {{ [0, ((min - value) * 5 if value < min else (value - max) * 5 if value > max else 0)] | max | round(0) }}
+          soil_stress: >
+            {% set value = states('sensor.grow_plant_1_soil_review') | float(state_attr('sensor.grow_arbiter_v4', 'soil1') | float(0)) %}
+            {% set min = state_attr('sensor.grow_plant_profile_registry', 'plant_1_soil_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(50)) %}
+            {% set max = state_attr('sensor.grow_plant_profile_registry', 'plant_1_soil_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(75)) %}
+            {{ [0, ((min - value) * 4 if value < min else (value - max) * 4 if value > max else 0)] | max | round(0) }}
+          light_stress: >
+            {% set ratio = state_attr('sensor.grow_plant_buddy_climate_review', 'light_on_ratio_hour') | float(0) %}
+            {% set min = state_attr('sensor.grow_plant_profile_registry', 'plant_1_light_hours_min') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+            {% set max = state_attr('sensor.grow_plant_profile_registry', 'plant_1_light_hours_max') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+            {% set policy_light = state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0) %}
+            {% set now_hour = now().hour + now().minute / 60 %}
+            {% set expected_on = policy_light > 0 and now_hour >= 6 and now_hour < 6 + policy_light %}
+            {% set interruption_score = (100 - ratio) if expected_on else ratio %}
+            {% set profile_gap = (min - policy_light) * 10 if policy_light < min else (policy_light - max) * 10 if policy_light > max else 0 %}
+            {{ [0, ((interruption_score + profile_gap) / 2)] | max | round(0) }}
+          recommendation: >
+            {% set soil = states('sensor.grow_plant_1_soil_review') | float(state_attr('sensor.grow_arbiter_v4', 'soil1') | float(0)) %}
+            {% set min_soil = state_attr('sensor.grow_plant_profile_registry', 'plant_1_soil_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(50)) %}
+            {% set max_soil = state_attr('sensor.grow_plant_profile_registry', 'plant_1_soil_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(75)) %}
+            {% set temp = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+            {% set min_temp = state_attr('sensor.grow_plant_profile_registry', 'plant_1_temperature_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(18)) %}
+            {% set max_temp = state_attr('sensor.grow_plant_profile_registry', 'plant_1_temperature_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(22)) %}
+            {% set hum = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+            {% set min_hum = state_attr('sensor.grow_plant_profile_registry', 'plant_1_humidity_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_humidity') | float(50)) %}
+            {% set max_hum = state_attr('sensor.grow_plant_profile_registry', 'plant_1_humidity_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_humidity') | float(70)) %}
+            {% set ratio = state_attr('sensor.grow_plant_buddy_climate_review', 'light_on_ratio_hour') | float(0) %}
+            {% set min_light = state_attr('sensor.grow_plant_profile_registry', 'plant_1_light_hours_min') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+            {% set max_light = state_attr('sensor.grow_plant_profile_registry', 'plant_1_light_hours_max') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+            {% set policy_light = state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0) %}
+            {% set now_hour = now().hour + now().minute / 60 %}
+            {% set expected_on = policy_light > 0 and now_hour >= 6 and now_hour < 6 + policy_light %}
+            {% if soil < min_soil %}Pflanze 1: gewichtete Bodenfeuchte unter Profil-Soll, Bewaesserung vorbereiten.
+            {% elif soil > max_soil %}Pflanze 1: gewichtete Bodenfeuchte ueber Profil-Soll, vorerst nicht nachgiessen.
+            {% elif temp < min_temp or temp > max_temp %}Pflanze 1: Temperatur weicht vom Profil ab, Klima beobachten.
+            {% elif hum < min_hum or hum > max_hum %}Pflanze 1: Luftfeuchte weicht vom Profil ab, Klima glatten.
+            {% elif policy_light < min_light or policy_light > max_light %}Pflanze 1: Tageslichtdauer der aktiven Phase passt nicht ideal zum gewaelten Profil.
+            {% elif expected_on and ratio < 90 %}Pflanze 1: Licht war in der letzten Stunde nicht stabil genug aktiv.
+            {% elif (not expected_on) and ratio > 10 %}Pflanze 1: Licht war in der Ruhephase der letzten Stunde zu oft aktiv.
+            {% else %}Pflanze 1: Profilwerte werden aktuell gut getroffen.
+            {% endif %}
+
+      - name: Grow Plant 2 Stress
+        unique_id: grow_plant_2_stress
+        unit_of_measurement: "%"
+        icon: mdi:leaf
+        state: >
+          {% set temp = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+          {% set hum = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+          {% set soil = states('sensor.grow_plant_2_soil_review') | float(state_attr('sensor.grow_arbiter_v4', 'soil2') | float(0)) %}
+          {% set min_temp = state_attr('sensor.grow_plant_profile_registry', 'plant_2_temperature_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(18)) %}
+          {% set max_temp = state_attr('sensor.grow_plant_profile_registry', 'plant_2_temperature_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(22)) %}
+          {% set min_hum = state_attr('sensor.grow_plant_profile_registry', 'plant_2_humidity_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_humidity') | float(50)) %}
+          {% set max_hum = state_attr('sensor.grow_plant_profile_registry', 'plant_2_humidity_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_humidity') | float(70)) %}
+          {% set min_soil = state_attr('sensor.grow_plant_profile_registry', 'plant_2_soil_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(50)) %}
+          {% set max_soil = state_attr('sensor.grow_plant_profile_registry', 'plant_2_soil_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(75)) %}
+          {% set min_light = state_attr('sensor.grow_plant_profile_registry', 'plant_2_light_hours_min') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+          {% set max_light = state_attr('sensor.grow_plant_profile_registry', 'plant_2_light_hours_max') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+          {% set policy_light = state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0) %}
+          {% set ratio = state_attr('sensor.grow_plant_buddy_climate_review', 'light_on_ratio_hour') | float(0) %}
+          {% set now_hour = now().hour + now().minute / 60 %}
+          {% set expected_on = policy_light > 0 and now_hour >= 6 and now_hour < 6 + policy_light %}
+          {% set interruption_score = (100 - ratio) if expected_on else ratio %}
+          {% set profile_gap = (min_light - policy_light) * 10 if policy_light < min_light else (policy_light - max_light) * 10 if policy_light > max_light else 0 %}
+          {% set temp_score = (min_temp - temp) * 10 if temp < min_temp else (temp - max_temp) * 10 if temp > max_temp else 0 %}
+          {% set hum_score = (min_hum - hum) * 5 if hum < min_hum else (hum - max_hum) * 5 if hum > max_hum else 0 %}
+          {% set soil_score = (min_soil - soil) * 4 if soil < min_soil else (soil - max_soil) * 4 if soil > max_soil else 0 %}
+          {% set light_score = (interruption_score + profile_gap) / 2 %}
+          {{ [0, [100, ((temp_score + hum_score + soil_score + light_score) / 4)] | min] | max | round(0) }}
+        attributes:
+          profile_id: "{{ state_attr('sensor.grow_plant_profile_registry', 'plant_2_profile_id') | default('universal_indoor', true) }}"
+          profile_label: "{{ state_attr('sensor.grow_plant_profile_registry', 'plant_2_profile_label') | default('Universal Indoor', true) }}"
+          temperature_stress: >
+            {% set value = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+            {% set min = state_attr('sensor.grow_plant_profile_registry', 'plant_2_temperature_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(18)) %}
+            {% set max = state_attr('sensor.grow_plant_profile_registry', 'plant_2_temperature_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(22)) %}
+            {{ [0, ((min - value) * 10 if value < min else (value - max) * 10 if value > max else 0)] | max | round(0) }}
+          humidity_stress: >
+            {% set value = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+            {% set min = state_attr('sensor.grow_plant_profile_registry', 'plant_2_humidity_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_humidity') | float(50)) %}
+            {% set max = state_attr('sensor.grow_plant_profile_registry', 'plant_2_humidity_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_humidity') | float(70)) %}
+            {{ [0, ((min - value) * 5 if value < min else (value - max) * 5 if value > max else 0)] | max | round(0) }}
+          soil_stress: >
+            {% set value = states('sensor.grow_plant_2_soil_review') | float(state_attr('sensor.grow_arbiter_v4', 'soil2') | float(0)) %}
+            {% set min = state_attr('sensor.grow_plant_profile_registry', 'plant_2_soil_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(50)) %}
+            {% set max = state_attr('sensor.grow_plant_profile_registry', 'plant_2_soil_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(75)) %}
+            {{ [0, ((min - value) * 4 if value < min else (value - max) * 4 if value > max else 0)] | max | round(0) }}
+          light_stress: >
+            {% set ratio = state_attr('sensor.grow_plant_buddy_climate_review', 'light_on_ratio_hour') | float(0) %}
+            {% set min = state_attr('sensor.grow_plant_profile_registry', 'plant_2_light_hours_min') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+            {% set max = state_attr('sensor.grow_plant_profile_registry', 'plant_2_light_hours_max') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+            {% set policy_light = state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0) %}
+            {% set now_hour = now().hour + now().minute / 60 %}
+            {% set expected_on = policy_light > 0 and now_hour >= 6 and now_hour < 6 + policy_light %}
+            {% set interruption_score = (100 - ratio) if expected_on else ratio %}
+            {% set profile_gap = (min - policy_light) * 10 if policy_light < min else (policy_light - max) * 10 if policy_light > max else 0 %}
+            {{ [0, ((interruption_score + profile_gap) / 2)] | max | round(0) }}
+          recommendation: >
+            {% set soil = states('sensor.grow_plant_2_soil_review') | float(state_attr('sensor.grow_arbiter_v4', 'soil2') | float(0)) %}
+            {% set min_soil = state_attr('sensor.grow_plant_profile_registry', 'plant_2_soil_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(50)) %}
+            {% set max_soil = state_attr('sensor.grow_plant_profile_registry', 'plant_2_soil_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(75)) %}
+            {% set temp = state_attr('sensor.grow_arbiter_v4', 'temperature') | float(0) %}
+            {% set min_temp = state_attr('sensor.grow_plant_profile_registry', 'plant_2_temperature_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(18)) %}
+            {% set max_temp = state_attr('sensor.grow_plant_profile_registry', 'plant_2_temperature_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(22)) %}
+            {% set hum = state_attr('sensor.grow_arbiter_v4', 'humidity') | float(0) %}
+            {% set min_hum = state_attr('sensor.grow_plant_profile_registry', 'plant_2_humidity_min') | float(state_attr('sensor.grow_policy_registry_v4', 'min_humidity') | float(50)) %}
+            {% set max_hum = state_attr('sensor.grow_plant_profile_registry', 'plant_2_humidity_max') | float(state_attr('sensor.grow_policy_registry_v4', 'max_humidity') | float(70)) %}
+            {% set ratio = state_attr('sensor.grow_plant_buddy_climate_review', 'light_on_ratio_hour') | float(0) %}
+            {% set min_light = state_attr('sensor.grow_plant_profile_registry', 'plant_2_light_hours_min') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+            {% set max_light = state_attr('sensor.grow_plant_profile_registry', 'plant_2_light_hours_max') | float(state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0)) %}
+            {% set policy_light = state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0) %}
+            {% set now_hour = now().hour + now().minute / 60 %}
+            {% set expected_on = policy_light > 0 and now_hour >= 6 and now_hour < 6 + policy_light %}
+            {% if soil < min_soil %}Pflanze 2: gewichtete Bodenfeuchte unter Profil-Soll, Bewaesserung vorbereiten.
+            {% elif soil > max_soil %}Pflanze 2: gewichtete Bodenfeuchte ueber Profil-Soll, vorerst nicht nachgiessen.
+            {% elif temp < min_temp or temp > max_temp %}Pflanze 2: Temperatur weicht vom Profil ab, Klima beobachten.
+            {% elif hum < min_hum or hum > max_hum %}Pflanze 2: Luftfeuchte weicht vom Profil ab, Klima glatten.
+            {% elif policy_light < min_light or policy_light > max_light %}Pflanze 2: Tageslichtdauer der aktiven Phase passt nicht ideal zum gewaelten Profil.
+            {% elif expected_on and ratio < 90 %}Pflanze 2: Licht war in der letzten Stunde nicht stabil genug aktiv.
+            {% elif (not expected_on) and ratio > 10 %}Pflanze 2: Licht war in der Ruhephase der letzten Stunde zu oft aktiv.
+            {% else %}Pflanze 2: Profilwerte werden aktuell gut getroffen.
+            {% endif %}
+
+      # The shared Buddy card adds a short forecast and profile context.
+      - name: Grow Plant Buddy
+        unique_id: grow_plant_buddy
+        unit_of_measurement: "%"
+        icon: mdi:account-heart
+        state: >
+          {{ ((states('sensor.grow_plant_1_stress') | float(0)
+             + states('sensor.grow_plant_2_stress') | float(0)) / 2) | round(0) }}
+        attributes:
+          status: >
+            {% set score = ((states('sensor.grow_plant_1_stress') | float(0) + states('sensor.grow_plant_2_stress') | float(0)) / 2) %}
+            {{ 'entspannt' if score < 10 else 'beobachten' if score < 30 else 'belastet' if score < 60 else 'kritisch' }}
+          forecast: >
+            {% set hours = state_attr('sensor.grow_policy_registry_v4', 'light_hours') | float(0) %}
+            {% set hour = now().hour + now().minute / 60 %}
+            {% if hours == 0 %}Ruhephase: in den naechsten 24 Stunden ist kein Licht geplant.
+            {% elif hour < 6 %}Lichtbeginn in etwa {{ (6 - hour) | round(1) }} Stunden.
+            {% elif hour < 6 + hours %}Lichtende in etwa {{ (6 + hours - hour) | round(1) }} Stunden.
+            {% else %}Naechster Lichtbeginn in etwa {{ (30 - hour) | round(1) }} Stunden.
+            {% endif %}
+          plant_1_profile: "{{ state_attr('sensor.grow_plant_1_stress', 'profile_label') }}"
+          plant_2_profile: "{{ state_attr('sensor.grow_plant_2_stress', 'profile_label') }}"
+          plant_1_recommendation: "{{ state_attr('sensor.grow_plant_1_stress', 'recommendation') }}"
+          plant_2_recommendation: "{{ state_attr('sensor.grow_plant_2_stress', 'recommendation') }}"
+
+
+

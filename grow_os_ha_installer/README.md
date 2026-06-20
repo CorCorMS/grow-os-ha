@@ -1,13 +1,13 @@
-# Grow OS HA v4 Installer
+﻿# Grow OS HA v4 Installer
 
 Home Assistant OS add-on that copies the current Grow OS HA v4.0 payload into `/config`.
 
 ## What it installs
 
-- `packages/grow/*`
-- `lovelace/grow_dashboard.yaml`
-- `grow_os_ha_v4_configuration_snippet.yaml`
-- optional `esphome/grow.v4.example.yaml`
+- `packages/grow_os_ha/*`
+- `lovelace/grow_os_ha_dashboard.yaml`
+- `grow_os_ha_configuration_snippet.yaml`
+- optional `esphome/grow_os_ha.example.yaml`
 
 ## What it does not do
 
@@ -21,3 +21,5 @@ Home Assistant OS add-on that copies the current Grow OS HA v4.0 payload into `/
 3. Merge the generated configuration snippet if your config does not yet include the package and dashboard blocks.
 4. Check configuration.
 5. Restart Home Assistant.
+
+

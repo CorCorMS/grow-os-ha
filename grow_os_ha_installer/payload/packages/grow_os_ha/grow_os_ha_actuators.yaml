@@ -1,0 +1,71 @@
+﻿###############################################################################
+# GROW OS HA v4.0 - ACTUATOR MIRRORS
+# This automation contains no policy logic. Every service call mirrors an
+# explicit command attribute emitted by sensor.grow_arbiter_v4.
+###############################################################################
+
+automation:
+  - alias: Grow v4 Actuator Mirrors
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: sensor.grow_arbiter_v4
+    action:
+      # Each choose block is a direct mirror of one Arbiter command attribute.
+      - choose:
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'heat_command') == 'on' }}"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'heat') }}"
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'heat_command') == 'off' }}"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'heat') }}"
+      - choose:
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'vent_command') == 'on' }}"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'vent') }}"
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'vent_command') == 'off' }}"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'vent') }}"
+      - choose:
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'pump1_command') == 'on' }}"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'pump1') }}"
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'pump1_command') == 'off' }}"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'pump1') }}"
+      - choose:
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'pump2_command') == 'on' }}"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'pump2') }}"
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'pump2_command') == 'off' }}"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'pump2') }}"
+      - choose:
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'light_command') == 'on' }}"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'light') }}"
+          - conditions: "{{ state_attr('sensor.grow_arbiter_v4', 'light_command') == 'off' }}"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: "{{ state_attr('sensor.grow_device_registry', 'light') }}"
+
+

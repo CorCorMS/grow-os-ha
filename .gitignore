@@ -1,4 +1,4 @@
-# GROW v4.0 — repository hygiene.
+﻿# GROW OS HA v4.0 - repository hygiene.
 # Keep private credentials, runtime state and local editor data out of Git.
 
 private key.ppk
@@ -9,7 +9,19 @@ Thumbs.db
 
 .agents/
 
-packages/grow/grow_plant_buddy_snapshot.json
-grow_os_ha_installer/payload/packages/grow/grow_plant_buddy_snapshot.json
+packages/grow_os_ha/grow_os_ha_plant_buddy_snapshot.json
+grow_os_ha_installer/payload/packages/grow_os_ha/grow_os_ha_plant_buddy_snapshot.json
 
 esphome/grow.yaml
+
+
+
+.ha_stage/
+.ha_stage_remote/
+.ha_stage.zip
+.grow_log_filter.sh
+.grow_stats_inspect.sql
+.ha_live_migrate_grow_os_ha.sh
+.live_debug.sql
+.live_debug_attrs.sql
+.tmp_ha_entities.txt

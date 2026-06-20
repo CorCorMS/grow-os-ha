@@ -1,0 +1,192 @@
+﻿###############################################################################
+# GROW OS HA v4.0 - ARBITER MIRRORS
+# Every value in this package is a read-only mirror of sensor.grow_arbiter_v4.
+# Dashboards and diagnostics use these sensors, never raw decision inputs.
+###############################################################################
+
+sensor:
+  # Power-to-energy counters derived from mirrors keep the dashboard coherent
+  # even for consumers that only exist as a calculated power remainder.
+  - platform: integration
+    source: sensor.grow_v4_total_power_mirror
+    name: Grow v4 Total Energy From Power
+    unique_id: grow_v4_total_energy_from_power
+    unit_prefix: k
+    round: 3
+    method: left
+  - platform: integration
+    source: sensor.grow_v4_heat_power_mirror
+    name: Grow v4 Heat Energy From Power
+    unique_id: grow_v4_heat_energy_from_power
+    unit_prefix: k
+    round: 3
+    method: left
+  - platform: integration
+    source: sensor.grow_v4_light_power_mirror
+    name: Grow v4 Light Energy From Power
+    unique_id: grow_v4_light_energy_from_power
+    unit_prefix: k
+    round: 3
+    method: left
+
+automation:
+  - alias: Grow v4 Refresh Derived Energy Mirrors
+    # Integration sensors can stay unknown after boot when a source starts at
+    # zero and does not change immediately, so they get one delayed refresh.
+    mode: single
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - delay: "00:00:30"
+      - service: homeassistant.update_entity
+        target:
+          entity_id:
+            - sensor.grow_v4_total_power_mirror
+            - sensor.grow_v4_heat_power_mirror
+            - sensor.grow_v4_light_power_mirror
+            - sensor.grow_v4_vent_power_mirror
+            - sensor.grow_v4_total_energy_from_power
+            - sensor.grow_v4_heat_energy_from_power
+            - sensor.grow_v4_light_energy_from_power
+            - sensor.grow_v4_vent_energy_from_power_mirror
+
+  - alias: Grow v4 Refresh Shared House Energy Integrations
+    # Some shared house integration sensors may remain unknown after a restart
+    # while their source power is already zero. A delayed refresh stabilizes
+    # the values without changing the original package logic.
+    mode: single
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - delay: "00:00:35"
+      - service: homeassistant.update_entity
+        target:
+          entity_id:
+            - sensor.netzbezug_leistung
+            - sensor.netzeinspeisung_leistung
+            - sensor.netzbezug_energie_kwh
+            - sensor.netzeinspeisung_energie_kwh
+
+template:
+  - sensor:
+      # Environmental values are copied from Arbiter attributes for UI use.
+      - name: Grow v4 Temperature Mirror
+        unique_id: grow_v4_temperature_mirror
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'temperature') | float(none) }}"
+      - name: Grow v4 Humidity Mirror
+        unique_id: grow_v4_humidity_mirror
+        device_class: humidity
+        unit_of_measurement: "%"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'humidity') | float(none) }}"
+      - name: Grow v4 Soil 1 Mirror
+        unique_id: grow_v4_soil1_mirror
+        unit_of_measurement: "%"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'soil1') | float(none) }}"
+      - name: Grow v4 Soil 2 Mirror
+        unique_id: grow_v4_soil2_mirror
+        unit_of_measurement: "%"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'soil2') | float(none) }}"
+      - name: Grow v4 Tank Mirror
+        unique_id: grow_v4_tank_mirror
+        unit_of_measurement: "%"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'tank') | float(none) }}"
+      - name: Grow v4 Heat Command Mirror
+        unique_id: grow_v4_heat_command_mirror
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'heat_command') | default('unknown', true) }}"
+      - name: Grow v4 Vent Command Mirror
+        unique_id: grow_v4_vent_command_mirror
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'vent_command') | default('unknown', true) }}"
+      - name: Grow v4 Pump 1 Command Mirror
+        unique_id: grow_v4_pump1_command_mirror
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'pump1_command') | default('unknown', true) }}"
+      - name: Grow v4 Pump 2 Command Mirror
+        unique_id: grow_v4_pump2_command_mirror
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'pump2_command') | default('unknown', true) }}"
+      - name: Grow v4 Light Command Mirror
+        unique_id: grow_v4_light_command_mirror
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'light_command') | default('unknown', true) }}"
+      # Active policy bounds are mirrored for the phase overview.
+      - name: Grow v4 Min Temperature Mirror
+        unique_id: grow_v4_min_temperature_mirror
+        unit_of_measurement: "°C"
+        state: "{{ state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(none) }}"
+      - name: Grow v4 Max Temperature Mirror
+        unique_id: grow_v4_max_temperature_mirror
+        unit_of_measurement: "°C"
+        state: "{{ state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(none) }}"
+      - name: Grow v4 Min Humidity Mirror
+        unique_id: grow_v4_min_humidity_mirror
+        unit_of_measurement: "%"
+        state: "{{ state_attr('sensor.grow_policy_registry_v4', 'min_humidity') | float(none) }}"
+      - name: Grow v4 Max Humidity Mirror
+        unique_id: grow_v4_max_humidity_mirror
+        unit_of_measurement: "%"
+        state: "{{ state_attr('sensor.grow_policy_registry_v4', 'max_humidity') | float(none) }}"
+      - name: Grow v4 Min Soil Mirror
+        unique_id: grow_v4_min_soil_mirror
+        unit_of_measurement: "%"
+        state: "{{ state_attr('sensor.grow_policy_registry_v4', 'min_soil') | float(none) }}"
+      - name: Grow v4 Max Soil Mirror
+        unique_id: grow_v4_max_soil_mirror
+        unit_of_measurement: "%"
+        state: "{{ state_attr('sensor.grow_policy_registry_v4', 'max_soil') | float(none) }}"
+      - name: Grow v4 Total Power Mirror
+        unique_id: grow_v4_total_power_mirror
+        device_class: power
+        unit_of_measurement: "W"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'total_power') | float(0) }}"
+      - name: Grow v4 Heat Power Mirror
+        unique_id: grow_v4_heat_power_mirror
+        device_class: power
+        unit_of_measurement: "W"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'heat_power') | float(0) }}"
+      - name: Grow v4 Light Power Mirror
+        unique_id: grow_v4_light_power_mirror
+        device_class: power
+        unit_of_measurement: "W"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'light_power') | float(0) }}"
+      - name: Grow v4 Vent Power Mirror
+        unique_id: grow_v4_vent_power_mirror
+        device_class: power
+        unit_of_measurement: "W"
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'vent_power') | float(0) }}"
+      - name: Grow v4 Total Energy Mirror
+        unique_id: grow_v4_total_energy_mirror
+        device_class: energy
+        unit_of_measurement: "kWh"
+        state_class: total
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'total_energy') | float(0) }}"
+      - name: Grow v4 Heat Energy Mirror
+        unique_id: grow_v4_heat_energy_mirror
+        device_class: energy
+        unit_of_measurement: "kWh"
+        state_class: total
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'heat_energy') | float(0) }}"
+      - name: Grow v4 Light Energy Mirror
+        unique_id: grow_v4_light_energy_mirror
+        device_class: energy
+        unit_of_measurement: "kWh"
+        state_class: total
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'light_energy') | float(0) }}"
+      - name: Grow v4 Vent Energy Mirror
+        unique_id: grow_v4_vent_energy_mirror
+        device_class: energy
+        unit_of_measurement: "kWh"
+        state_class: total
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'vent_energy') | float(0) }}"
+      - name: Grow v4 Vent Energy From Power Mirror
+        unique_id: grow_v4_vent_energy_from_power_mirror
+        device_class: energy
+        unit_of_measurement: "kWh"
+        state_class: total
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'vent_energy') | float(0) | round(3) }}"
+      - name: Grow v4 Energy Cost Mirror
+        unique_id: grow_v4_energy_cost_mirror
+        unit_of_measurement: "EUR"
+        state_class: total
+        state: "{{ state_attr('sensor.grow_arbiter_v4', 'energy_cost') | float(0) | round(2) }}"
+

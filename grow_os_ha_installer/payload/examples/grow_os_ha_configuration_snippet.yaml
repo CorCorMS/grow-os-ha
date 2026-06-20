@@ -1,0 +1,18 @@
+﻿# GROW OS HA v4.0 â€” configuration merge snippet.
+# Merge these blocks into your existing /config/configuration.yaml if they are
+# not already present. Do not duplicate top-level keys if you already have them.
+
+homeassistant:
+  packages: !include_dir_named packages/grow_os_ha
+
+lovelace:
+  dashboards:
+    grow-os-ha:
+      mode: yaml
+      title: Grow OS HA
+      icon: mdi:cog-box
+      show_in_sidebar: true
+      filename: lovelace/grow_os_ha_dashboard.yaml
+
+
+

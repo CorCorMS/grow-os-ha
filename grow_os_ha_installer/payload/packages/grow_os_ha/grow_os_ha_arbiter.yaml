@@ -1,0 +1,71 @@
+﻿###############################################################################
+# GROW OS HA v4.0 - ARBITER (SINGLE SOURCE OF TRUTH)
+# The Arbiter is the only component that evaluates policy registers and live
+# mirrors. Actuator automations only mirror its on/off commands.
+###############################################################################
+
+template:
+  - sensor:
+      - name: Grow Arbiter v4
+        unique_id: grow_arbiter_v4
+        icon: mdi:scale-balance
+        state: ok
+        attributes:
+          temperature: "{{ states('sensor.grow_temperature_fused') | float(0) }}"
+          humidity: "{{ states('sensor.grow_humidity_fused') | float(0) }}"
+          soil1: "{{ states(state_attr('sensor.grow_device_registry', 'soil1')) | float(0) }}"
+          soil2: "{{ states(state_attr('sensor.grow_device_registry', 'soil2')) | float(0) }}"
+          tank: "{{ states(state_attr('sensor.grow_device_registry', 'tank')) | float(0) }}"
+          # Energy data is collected by the Arbiter so dashboards consume only
+          # Arbiter-derived mirrors, just like environmental values.
+          light_power: "{{ states('sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_leistung') | float(0) }}"
+          vent_power: "{{ states('sensor.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s_leistung') | float(0) }}"
+          total_power: "{{ states('sensor.waschkuche_ug_grow_shelly_1_pm_leistung') | float(0) }}"
+          heat_power: >
+            {% set total = states('sensor.waschkuche_ug_grow_shelly_1_pm_leistung') | float(0) %}
+            {% set light = states('sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_leistung') | float(0) %}
+            {% set vent = states('sensor.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s_leistung') | float(0) %}
+            {{ [0, (total - light - vent)] | max | round(2) }}
+          light_energy: "{{ states('sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_energie') | float(0) }}"
+          vent_energy: "{{ states('sensor.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s_energie') | float(0) }}"
+          total_energy: "{{ states('sensor.waschkuche_ug_grow_shelly_1_pm_energie') | float(0) }}"
+          heat_energy: >
+            {% set total = states('sensor.waschkuche_ug_grow_shelly_1_pm_energie') | float(0) %}
+            {% set light = states('sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_energie') | float(0) %}
+            {% set vent = states('sensor.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s_energie') | float(0) %}
+            {{ [0, (total - light - vent)] | max | round(3) }}
+          energy_cost: >
+            {% set energy = states('sensor.waschkuche_ug_grow_shelly_1_pm_energie') | float(0) %}
+            {{ energy * states('input_number.grow_energy_price_kwh') | float(0) }}
+          heat_command: >
+            {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_heating_lock','on') %}
+            {% set temp = states('sensor.grow_temperature_fused') | float(0) %}
+            {% set minimum = state_attr('sensor.grow_policy_registry_v4','min_temp') | float(18) %}
+            {{ 'off' if locked else 'on' if temp < minimum else 'off' }}
+          vent_command: >
+            {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_ventilation_lock','on') %}
+            {% set temp = states('sensor.grow_temperature_fused') | float(0) %}
+            {% set hum = states('sensor.grow_humidity_fused') | float(0) %}
+            {% set max_temp = state_attr('sensor.grow_policy_registry_v4','max_temp') | float(22) %}
+            {% set max_hum = state_attr('sensor.grow_policy_registry_v4','max_humidity') | float(70) %}
+            {{ 'off' if locked else 'on' if temp > max_temp + 2 or hum > max_hum else 'off' }}
+          pump1_command: >
+            {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_irrigation_lock','on') %}
+            {% set soil = states(state_attr('sensor.grow_device_registry', 'soil1')) | float(0) %}
+            {% set min_soil = state_attr('sensor.grow_policy_registry_v4','min_soil') | float(50) %}
+            {% set tank = states(state_attr('sensor.grow_device_registry', 'tank')) | float(0) %}
+            {{ 'off' if locked else 'on' if soil < min_soil and tank >= 5 else 'off' }}
+          pump2_command: >
+            {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_irrigation_lock','on') %}
+            {% set soil = states(state_attr('sensor.grow_device_registry', 'soil2')) | float(0) %}
+            {% set min_soil = state_attr('sensor.grow_policy_registry_v4','min_soil') | float(50) %}
+            {% set tank = states(state_attr('sensor.grow_device_registry', 'tank')) | float(0) %}
+            {{ 'off' if locked else 'on' if soil < min_soil and tank >= 5 else 'off' }}
+          light_command: >
+            {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_lighting_lock','on') %}
+            {% set start = state_attr('input_datetime.grow_cycle_start','timestamp') | float(0) %}
+            {% set hours = state_attr('sensor.grow_policy_registry_v4','light_hours') | float(0) %}
+            {% set now_hour = now().hour + now().minute / 60 %}
+            {{ 'off' if locked else 'on' if hours > 0 and now_hour >= 6 and now_hour < 6 + hours else 'off' }}
+
+
