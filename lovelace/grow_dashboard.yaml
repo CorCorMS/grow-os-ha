@@ -351,6 +351,41 @@ views:
               - sensor.grow_v4_vent_command_mirror
               - sensor.grow_v4_pump_1_command_mirror
               - sensor.grow_v4_pump_2_command_mirror
+      - type: grid
+        cards:
+          - type: markdown
+            content: |
+              ## Abluft-Wirkungspruefung
+              Hier siehst du, ob die Abluft wegen ausbleibender Verbesserung gesperrt wurde. Nach 5 Minuten wird geprueft, ob sich der relevante Wert verbessert hat. Falls nicht, bleibt die Abluft fuer 30 Minuten gesperrt und versucht es danach erneut.
+      - type: grid
+        columns: 2
+        cards:
+          - type: entities
+            title: Sperrstatus
+            entities:
+              - entity: sensor.grow_arbiter_v4
+                type: attribute
+                attribute: vent_cooldown_active
+                name: Abluft gesperrt
+              - entity: sensor.grow_arbiter_v4
+                type: attribute
+                attribute: vent_reason
+                name: Regelgrund
+              - entity: sensor.grow_arbiter_v4
+                type: attribute
+                attribute: vent_probe_active
+                name: 5-Minuten-Pruefung aktiv
+              - entity: sensor.grow_arbiter_v4
+                type: attribute
+                attribute: vent_probe_reason
+                name: Pruefgrund
+          - type: entities
+            title: Retry und Ausgangswerte
+            entities:
+              - input_datetime.grow_vent_retry_at
+              - input_datetime.grow_vent_probe_started_at
+              - input_number.grow_vent_probe_baseline_temp
+              - input_number.grow_vent_probe_baseline_humidity
 
   # Compares active setpoints and live values, plus a concise all-phase reference.
   - title: Phasen
