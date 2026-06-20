@@ -245,16 +245,35 @@ views:
         cards:
           - type: markdown
             content: |
-              ## Zeitraumsauswertung
-              Diese Karten folgen direkt der nativen Energy-Datumsauswahl oben.
+              ## Bilanz fuer den gewaehlten Zeitraum
+              Diese Kennzahlen folgen direkt der nativen Energy-Datumsauswahl oben und bilden den oberen Schnellueberblick der Energie-Seite.
       - type: grid
-        columns: 2
+        columns: 3
         cards:
           - type: statistic
             entity: sensor.waschkuche_ug_grow_shelly_1_pm_energie
             name: Gesamtverbrauch Zeitraum
             stat_type: change
             period: energy_date_selection
+          - type: statistic
+            entity: sensor.grow_v4_energy_cost_mirror
+            name: Kosten Zeitraum
+            stat_type: change
+            period: energy_date_selection
+          - type: statistic
+            entity: sensor.netzbezug_energie_kwh
+            name: Netzbezug Zeitraum
+            stat_type: change
+            period: energy_date_selection
+      - type: grid
+        cards:
+          - type: markdown
+            content: |
+              ## Verbraucher im Zeitraum
+              Aufteilung des gewaehlten Zeitraums nach Heizung, Licht und Belueftung.
+      - type: grid
+        columns: 2
+        cards:
           - type: statistic
             entity: sensor.grow_v4_heat_energy_mirror
             name: Heizung Zeitraum
@@ -271,18 +290,14 @@ views:
             stat_type: change
             period: energy_date_selection
       - type: grid
+        cards:
+          - type: markdown
+            content: |
+              ## Netz und Tarif
+              Energieaustausch mit dem Hausnetz und die zugrunde liegenden Zaehler.
+      - type: grid
         columns: 2
         cards:
-          - type: statistic
-            entity: sensor.grow_v4_energy_cost_mirror
-            name: Kosten Zeitraum
-            stat_type: change
-            period: energy_date_selection
-          - type: statistic
-            entity: sensor.netzbezug_energie_kwh
-            name: Netzbezug Zeitraum
-            stat_type: change
-            period: energy_date_selection
           - type: statistic
             entity: sensor.netzeinspeisung_energie_kwh
             name: Einspeisung Zeitraum
@@ -296,6 +311,8 @@ views:
               - sensor.grow_v4_heat_energy_mirror
               - sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_energie
               - sensor.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s_energie
+              - sensor.netzbezug_energie_kwh
+              - sensor.netzeinspeisung_energie_kwh
       - type: grid
         cards:
           - type: markdown
@@ -305,20 +322,33 @@ views:
       - type: grid
         columns: 2
         cards:
-          - type: entities
-            title: Live-Leistung
-            entities:
-              - sensor.grow_v4_total_power_mirror
-              - sensor.grow_v4_heat_power_mirror
-              - sensor.grow_v4_light_power_mirror
-              - sensor.grow_v4_vent_power_mirror
-          - type: entities
-            title: Live-Zaehlerstand
-            entities:
-              - sensor.grow_v4_energy_cost_mirror
-              - sensor.waschkuche_ug_grow_shelly_1_pm_energie
-              - sensor.netzbezug_energie_kwh
-              - sensor.netzeinspeisung_energie_kwh
+          - type: tile
+            entity: sensor.grow_v4_total_power_mirror
+            name: Gesamtleistung live
+            icon: mdi:flash
+          - type: tile
+            entity: sensor.grow_v4_heat_power_mirror
+            name: Heizung live
+            icon: mdi:radiator
+          - type: tile
+            entity: sensor.grow_v4_light_power_mirror
+            name: Licht live
+            icon: mdi:lightbulb
+          - type: tile
+            entity: sensor.grow_v4_vent_power_mirror
+            name: Belueftung live
+            icon: mdi:fan
+      - type: grid
+        columns: 2
+        cards:
+          - type: tile
+            entity: sensor.waschkuche_ug_grow_shelly_1_pm_energie
+            name: Gesamtzaehler live
+            icon: mdi:counter
+          - type: tile
+            entity: sensor.grow_v4_energy_cost_mirror
+            name: Kosten gesamt live
+            icon: mdi:currency-eur
 
   # Explains the single-source-of-truth control model without exposing policy edits.
   - title: Arbiter
