@@ -187,4 +187,5 @@ template:
       - name: Grow v4 Energy Cost Mirror
         unique_id: grow_v4_energy_cost_mirror
         unit_of_measurement: "EUR"
+        state_class: total
         state: "{{ state_attr('sensor.grow_arbiter_v4', 'energy_cost') | float(0) | round(2) }}"

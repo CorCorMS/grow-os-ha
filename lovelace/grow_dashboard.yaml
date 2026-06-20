@@ -223,7 +223,9 @@ views:
           - type: markdown
             content: |
               # Energie und Kosten
-              Gesamt, Licht und Belueftung kommen direkt aus den Shelly-Energiezaehlern. Heizung bleibt als Rest aus Gesamt minus Licht minus Belueftung berechnet. Fuer freie Zeitraeume einfach auf eine Energie-Entitaet tippen - Home Assistant oeffnet dann die Standard-Historie mit Zeitraumauswahl.
+              Gesamt, Licht und Belueftung kommen direkt aus den Shelly-Energiezaehlern. Heizung bleibt als Rest aus Gesamt minus Licht minus Belueftung berechnet.
+
+              Die Datumsauswahl oben steuert auf dieser Seite die Verbrauchs- und Zeitraumkarten. Nur die Momentanwerte bleiben bewusst live.
       - type: grid
         columns: 2
         cards:
@@ -243,68 +245,80 @@ views:
         cards:
           - type: markdown
             content: |
-              ## Aufteilung
-              Gesamtleistung des Schranks, Heizungs-Restleistung und die zugehoerigen Energiezaehler in kWh.
+              ## Zeitraumsauswertung
+              Diese Karten folgen direkt der nativen Energy-Datumsauswahl oben.
       - type: grid
         columns: 2
         cards:
+          - type: statistic
+            entity: sensor.waschkuche_ug_grow_shelly_1_pm_energie
+            name: Gesamtverbrauch Zeitraum
+            stat_type: change
+            period: energy_date_selection
+          - type: statistic
+            entity: sensor.grow_v4_heat_energy_mirror
+            name: Heizung Zeitraum
+            stat_type: change
+            period: energy_date_selection
+          - type: statistic
+            entity: sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_energie
+            name: Licht Zeitraum
+            stat_type: change
+            period: energy_date_selection
+          - type: statistic
+            entity: sensor.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s_energie
+            name: Belueftung Zeitraum
+            stat_type: change
+            period: energy_date_selection
+      - type: grid
+        columns: 2
+        cards:
+          - type: statistic
+            entity: sensor.grow_v4_energy_cost_mirror
+            name: Kosten Zeitraum
+            stat_type: change
+            period: energy_date_selection
+          - type: statistic
+            entity: sensor.netzbezug_energie_kwh
+            name: Netzbezug Zeitraum
+            stat_type: change
+            period: energy_date_selection
+          - type: statistic
+            entity: sensor.netzeinspeisung_energie_kwh
+            name: Einspeisung Zeitraum
+            stat_type: change
+            period: energy_date_selection
           - type: entities
-            title: Verbraucher
+            title: Tarif und Zaehler
             entities:
-              - sensor.grow_v4_total_power_mirror
-              - sensor.grow_v4_heat_power_mirror
-              - sensor.grow_v4_light_power_mirror
-              - sensor.grow_v4_vent_power_mirror
-          - type: entities
-            title: Energiezaehler
-            entities:
+              - input_number.grow_energy_price_kwh
               - sensor.waschkuche_ug_grow_shelly_1_pm_energie
               - sensor.grow_v4_heat_energy_mirror
               - sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_energie
               - sensor.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s_energie
-              - sensor.grow_v4_total_energy_from_power
-              - sensor.grow_v4_heat_energy_from_power
-              - sensor.grow_v4_light_energy_from_power
-              - sensor.grow_v4_vent_energy_from_power_mirror
-      - type: grid
-        columns: 2
-        cards:
-          - type: entities
-            title: Kostenrechnung
-            entities:
-              - input_number.grow_energy_price_kwh
-              - sensor.grow_v4_energy_cost_mirror
-          - type: entities
-            title: Gesamtshelly
-            entities:
-              - sensor.waschkuche_ug_grow_shelly_1_pm_leistung
-              - sensor.waschkuche_ug_grow_shelly_1_pm_energie
       - type: grid
         cards:
           - type: markdown
             content: |
-              ## Zeitraum waehlen
-              Tippe auf einen der Energiezaehler oben. Home Assistant oeffnet dann die Standard-Detailansicht mit Historie und Zeitraumauswahl fuer genau diese Entitaet.
+              ## Momentanwerte
+              Diese Karten zeigen absichtlich immer den aktuellen Live-Zustand des Schranks und folgen nicht der Datumsauswahl.
       - type: grid
+        columns: 2
         cards:
-          - type: history-graph
-            title: Leistung der letzten 24 Stunden
-            hours_to_show: 24
+          - type: entities
+            title: Live-Leistung
             entities:
               - sensor.grow_v4_total_power_mirror
               - sensor.grow_v4_heat_power_mirror
               - sensor.grow_v4_light_power_mirror
               - sensor.grow_v4_vent_power_mirror
-      - type: grid
-        cards:
-          - type: history-graph
-            title: Energiezaehler der letzten 24 Stunden
-            hours_to_show: 24
+          - type: entities
+            title: Live-Zaehlerstand
             entities:
+              - sensor.grow_v4_energy_cost_mirror
               - sensor.waschkuche_ug_grow_shelly_1_pm_energie
-              - sensor.grow_v4_heat_energy_mirror
-              - sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_energie
-              - sensor.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s_energie
+              - sensor.netzbezug_energie_kwh
+              - sensor.netzeinspeisung_energie_kwh
 
   # Explains the single-source-of-truth control model without exposing policy edits.
   - title: Arbiter
