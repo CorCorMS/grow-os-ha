@@ -11,6 +11,18 @@ input_datetime:
     has_date: true
     has_time: true
     initial: "2026-05-22 06:00:00"
+  # Vent retry timestamp prevents endless ineffective exhaust retries.
+  grow_vent_retry_at:
+    name: Grow Vent Retry At
+    has_date: true
+    has_time: true
+    initial: "1970-01-01 00:00:00"
+  # Probe start timestamp anchors the 5-minute effectiveness check.
+  grow_vent_probe_started_at:
+    name: Grow Vent Probe Started At
+    has_date: true
+    has_time: true
+    initial: "1970-01-01 00:00:00"
 
 input_boolean:
   # Locks are explicit operator safety overrides consumed by the Arbiter.
@@ -34,6 +46,11 @@ input_boolean:
     name: Grow Lighting Lock
     icon: mdi:lightbulb-off
     initial: false
+  # Probe flag marks an active vent effectiveness measurement window.
+  grow_vent_probe_active:
+    name: Grow Vent Probe Active
+    icon: mdi:timer-sand
+    initial: false
 
 input_number:
   # Energy tariff is informational only and never affects a control command.
@@ -46,6 +63,26 @@ input_number:
     max: 2
     step: 0.01
     initial: 0.35
+    mode: box
+  # Baseline values are captured when a vent trial starts and compared after
+  # five minutes to decide whether the exhaust is actually helping.
+  grow_vent_probe_baseline_temp:
+    name: Grow Vent Probe Baseline Temperature
+    icon: mdi:thermometer-chevron-down
+    unit_of_measurement: "°C"
+    min: -20
+    max: 80
+    step: 0.1
+    initial: 0
+    mode: box
+  grow_vent_probe_baseline_humidity:
+    name: Grow Vent Probe Baseline Humidity
+    icon: mdi:water-percent
+    unit_of_measurement: "%"
+    min: 0
+    max: 100
+    step: 0.1
+    initial: 0
     mode: box
 
 input_select:
@@ -169,6 +206,12 @@ input_text:
     name: Confirmed Grow Plant 2 Profile
     max: 64
     initial: universal_indoor
+  # Probe reason tells the evaluator whether temperature or humidity must
+  # improve during the 5-minute exhaust test window.
+  grow_vent_probe_reason:
+    name: Grow Vent Probe Reason
+    max: 32
+    initial: idle
 
 input_button:
   grow_confirm_device_mapping:

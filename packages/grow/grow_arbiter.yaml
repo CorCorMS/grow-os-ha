@@ -13,9 +13,15 @@ template:
         attributes:
           temperature: "{{ states('sensor.grow_temperature_fused') | float(0) }}"
           humidity: "{{ states('sensor.grow_humidity_fused') | float(0) }}"
-          soil1: "{{ states(state_attr('sensor.grow_device_registry', 'soil1')) | float(0) }}"
-          soil2: "{{ states(state_attr('sensor.grow_device_registry', 'soil2')) | float(0) }}"
-          tank: "{{ states(state_attr('sensor.grow_device_registry', 'tank')) | float(0) }}"
+          soil1: >
+            {% set entity_id = state_attr('sensor.grow_device_registry', 'soil1') %}
+            {{ states(entity_id) | float(0) if entity_id else 0 }}
+          soil2: >
+            {% set entity_id = state_attr('sensor.grow_device_registry', 'soil2') %}
+            {{ states(entity_id) | float(0) if entity_id else 0 }}
+          tank: >
+            {% set entity_id = state_attr('sensor.grow_device_registry', 'tank') %}
+            {{ states(entity_id) | float(0) if entity_id else 0 }}
           # Energy data is collected by the Arbiter so dashboards consume only
           # Arbiter-derived mirrors, just like environmental values.
           light_power: "{{ states('sensor.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s_leistung') | float(0) }}"
@@ -48,23 +54,45 @@ template:
             {% set hum = states('sensor.grow_humidity_fused') | float(0) %}
             {% set max_temp = state_attr('sensor.grow_policy_registry_v4','max_temp') | float(22) %}
             {% set max_hum = state_attr('sensor.grow_policy_registry_v4','max_humidity') | float(70) %}
-            {% set vent_is_on = is_state(state_attr('sensor.grow_device_registry', 'vent'), 'on') %}
+            {% set vent_entity = state_attr('sensor.grow_device_registry', 'vent') %}
+            {% set vent_is_on = is_state(vent_entity, 'on') if vent_entity else false %}
+            {% set retry_at = state_attr('input_datetime.grow_vent_retry_at', 'timestamp') | float(0) %}
+            {% set cooldown_active = retry_at > now().timestamp() %}
             {{ 'off' if locked
+               else 'off' if cooldown_active
                else 'on' if hum > max_hum
                else 'on' if temp > max_temp + 2
                else 'on' if vent_is_on and temp > max_temp
                else 'off' }}
+          vent_reason: >
+            {% set temp = states('sensor.grow_temperature_fused') | float(0) %}
+            {% set hum = states('sensor.grow_humidity_fused') | float(0) %}
+            {% set max_temp = state_attr('sensor.grow_policy_registry_v4','max_temp') | float(22) %}
+            {% set max_hum = state_attr('sensor.grow_policy_registry_v4','max_humidity') | float(70) %}
+            {% if hum > max_hum %}humidity
+            {% elif temp > max_temp %}temperature
+            {% else %}idle
+            {% endif %}
+          vent_retry_at: "{{ state_attr('input_datetime.grow_vent_retry_at', 'timestamp') | float(0) }}"
+          vent_cooldown_active: >
+            {{ (state_attr('input_datetime.grow_vent_retry_at', 'timestamp') | float(0)) > now().timestamp() }}
+          vent_probe_active: "{{ is_state('input_boolean.grow_vent_probe_active', 'on') }}"
+          vent_probe_reason: "{{ states('input_text.grow_vent_probe_reason') }}"
           pump1_command: >
             {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_irrigation_lock','on') %}
-            {% set soil = states(state_attr('sensor.grow_device_registry', 'soil1')) | float(0) %}
+            {% set soil_entity = state_attr('sensor.grow_device_registry', 'soil1') %}
+            {% set soil = states(soil_entity) | float(0) if soil_entity else 0 %}
             {% set min_soil = state_attr('sensor.grow_policy_registry_v4','min_soil') | float(50) %}
-            {% set tank = states(state_attr('sensor.grow_device_registry', 'tank')) | float(0) %}
+            {% set tank_entity = state_attr('sensor.grow_device_registry', 'tank') %}
+            {% set tank = states(tank_entity) | float(0) if tank_entity else 0 %}
             {{ 'off' if locked else 'on' if soil < min_soil and tank >= 5 else 'off' }}
           pump2_command: >
             {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_irrigation_lock','on') %}
-            {% set soil = states(state_attr('sensor.grow_device_registry', 'soil2')) | float(0) %}
+            {% set soil_entity = state_attr('sensor.grow_device_registry', 'soil2') %}
+            {% set soil = states(soil_entity) | float(0) if soil_entity else 0 %}
             {% set min_soil = state_attr('sensor.grow_policy_registry_v4','min_soil') | float(50) %}
-            {% set tank = states(state_attr('sensor.grow_device_registry', 'tank')) | float(0) %}
+            {% set tank_entity = state_attr('sensor.grow_device_registry', 'tank') %}
+            {% set tank = states(tank_entity) | float(0) if tank_entity else 0 %}
             {{ 'off' if locked else 'on' if soil < min_soil and tank >= 5 else 'off' }}
           light_command: >
             {% set locked = is_state('input_boolean.grow_master_lock','on') or is_state('input_boolean.grow_lighting_lock','on') %}

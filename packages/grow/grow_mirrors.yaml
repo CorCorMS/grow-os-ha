@@ -75,7 +75,7 @@ template:
       - name: Grow v4 Temperature Mirror
         unique_id: grow_v4_temperature_mirror
         device_class: temperature
-        unit_of_measurement: "C"
+        unit_of_measurement: "°C"
         state: "{{ state_attr('sensor.grow_arbiter_v4', 'temperature') | float(none) }}"
       - name: Grow v4 Humidity Mirror
         unique_id: grow_v4_humidity_mirror
@@ -112,11 +112,11 @@ template:
       # Active policy bounds are mirrored for the phase overview.
       - name: Grow v4 Min Temperature Mirror
         unique_id: grow_v4_min_temperature_mirror
-        unit_of_measurement: "C"
+        unit_of_measurement: "°C"
         state: "{{ state_attr('sensor.grow_policy_registry_v4', 'min_temp') | float(none) }}"
       - name: Grow v4 Max Temperature Mirror
         unique_id: grow_v4_max_temperature_mirror
-        unit_of_measurement: "C"
+        unit_of_measurement: "°C"
         state: "{{ state_attr('sensor.grow_policy_registry_v4', 'max_temp') | float(none) }}"
       - name: Grow v4 Min Humidity Mirror
         unique_id: grow_v4_min_humidity_mirror

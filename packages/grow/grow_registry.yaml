@@ -11,13 +11,17 @@ template:
         unique_id: grow_temperature_fused
         device_class: temperature
         unit_of_measurement: "°C"
-        state: "{{ states(state_attr('sensor.grow_device_registry', 'temperature')) | float(none) }}"
+        state: >
+          {% set entity_id = state_attr('sensor.grow_device_registry', 'temperature') %}
+          {{ states(entity_id) | float(none) if entity_id else none }}
 
       - name: Grow Humidity Fused
         unique_id: grow_humidity_fused
         device_class: humidity
         unit_of_measurement: "%"
-        state: "{{ states(state_attr('sensor.grow_device_registry', 'humidity')) | float(none) }}"
+        state: >
+          {% set entity_id = state_attr('sensor.grow_device_registry', 'humidity') %}
+          {{ states(entity_id) | float(none) if entity_id else none }}
 
       - name: Grow Auto Phase
         unique_id: grow_auto_phase
@@ -31,7 +35,7 @@ template:
           {% elif days < 101 %}Blüte
           {% elif days < 115 %}Nachblüte
           {% else %}Ruhe
-            {% endif %}
+          {% endif %}
 
       # Device IDs selected in the dashboard; actuator mirrors consume these.
       - name: Grow Device Registry
@@ -52,7 +56,7 @@ template:
           plant1_profile: "{{ states('input_text.grow_confirmed_plant1_profile') }}"
           plant2_profile: "{{ states('input_text.grow_confirmed_plant2_profile') }}"
 
-      # Fixed, read-only policy ranges.  Only the Arbiter evaluates them.
+      # Fixed, read-only policy ranges. Only the Arbiter evaluates them.
       - name: Grow Policy Registry v4
         unique_id: grow_policy_registry_v4
         icon: mdi:book-cog

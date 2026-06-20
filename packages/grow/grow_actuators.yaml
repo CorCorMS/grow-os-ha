@@ -67,3 +67,111 @@ automation:
               - service: switch.turn_off
                 target:
                   entity_id: "{{ state_attr('sensor.grow_device_registry', 'light') }}"
+
+  - alias: Grow v4 Vent Probe Start
+    # Start a five-minute effectiveness probe whenever the Arbiter requests
+    # exhaust and no previous probe is already active.
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: sensor.grow_v4_vent_command_mirror
+        to: "on"
+    condition:
+      - condition: state
+        entity_id: input_boolean.grow_vent_probe_active
+        state: "off"
+      - condition: template
+        value_template: "{{ state_attr('sensor.grow_arbiter_v4', 'vent_reason') in ['humidity', 'temperature'] }}"
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.grow_vent_probe_active
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.grow_vent_probe_started_at
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.grow_vent_probe_baseline_temp
+        data:
+          value: "{{ states('sensor.grow_temperature_fused') | float(0) }}"
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.grow_vent_probe_baseline_humidity
+        data:
+          value: "{{ states('sensor.grow_humidity_fused') | float(0) }}"
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.grow_vent_probe_reason
+        data:
+          value: "{{ state_attr('sensor.grow_arbiter_v4', 'vent_reason') }}"
+      - delay: "00:05:00"
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.grow_vent_probe_active
+                state: "on"
+              - condition: state
+                entity_id: sensor.grow_v4_vent_command_mirror
+                state: "on"
+              - condition: template
+                value_template: >
+                  {% set reason = states('input_text.grow_vent_probe_reason') %}
+                  {% set current_temp = states('sensor.grow_temperature_fused') | float(0) %}
+                  {% set current_hum = states('sensor.grow_humidity_fused') | float(0) %}
+                  {% set base_temp = states('input_number.grow_vent_probe_baseline_temp') | float(0) %}
+                  {% set base_hum = states('input_number.grow_vent_probe_baseline_humidity') | float(0) %}
+                  {% set temp_improved = current_temp <= (base_temp - 0.2) %}
+                  {% set hum_improved = current_hum <= (base_hum - 1) %}
+                  {{ (reason == 'temperature' and not temp_improved)
+                     or (reason == 'humidity' and not hum_improved) }}
+            sequence:
+              - service: input_datetime.set_datetime
+                target:
+                  entity_id: input_datetime.grow_vent_retry_at
+                data:
+                  datetime: "{{ (now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+              - service: input_boolean.turn_off
+                target:
+                  entity_id: input_boolean.grow_vent_probe_active
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.grow_vent_probe_reason
+                data:
+                  value: cooldown
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.grow_vent_probe_active
+                state: "on"
+            sequence:
+              - service: input_boolean.turn_off
+                target:
+                  entity_id: input_boolean.grow_vent_probe_active
+              - service: input_text.set_value
+                target:
+                  entity_id: input_text.grow_vent_probe_reason
+                data:
+                  value: idle
+
+  - alias: Grow v4 Vent Probe Reset When Off
+    # If the Arbiter stops exhaust before five minutes, the pending probe is
+    # cancelled so a later retry starts with a fresh baseline.
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: sensor.grow_v4_vent_command_mirror
+        to: "off"
+    condition:
+      - condition: state
+        entity_id: input_boolean.grow_vent_probe_active
+        state: "on"
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.grow_vent_probe_active
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.grow_vent_probe_reason
+        data:
+          value: idle
