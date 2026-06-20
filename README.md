@@ -1,64 +1,115 @@
 # GROW OS HA v4.0
 
-Single-source grow control for Home Assistant with an Arbiter-first architecture.
+Arbiter-first grow automation for Home Assistant with a strict single-source-of-truth architecture.
 
-This repository contains the current v4.0 state of the Grow Box project:
+GROW OS HA v4.0 is built around one central idea:
 
-- one Arbiter as the only decision maker
-- policy and device registers as the single source of truth
-- mirror-only dashboards and debug sensors
-- Plant Buddy advisory logic with trend review and stress scoring
-- a Home Assistant OS installer add-on for copying the v4 files into `/config`
+- one Arbiter makes all control decisions
+- registers hold policy and device assignments
+- mirrors feed dashboards and diagnostics
+- actuator automations only execute Arbiter output
+- Plant Buddy gives advice, but never controls hardware
 
-## Repository layout
+## What you get
 
-- [configuration.yaml](configuration.yaml) — current HA entry-point example
-- [packages/grow](packages/grow) — v4.0 package files
-- [lovelace/grow_dashboard.yaml](lovelace/grow_dashboard.yaml) — dashboard v4
-- [esphome/grow.v4.example.yaml](esphome/grow.v4.example.yaml) — sanitized ESPHome example
-- [grow_os_ha_installer](grow_os_ha_installer) — HAOS installer add-on
+- Home Assistant package-based grow control
+- energy-style YAML dashboard for daily operation
+- device and sensor mapping from inside Home Assistant
+- Plant Buddy stress scoring and recommendations
+- energy, cost and power visibility
+- Home Assistant OS installer add-on for easy deployment
 
-## HAOS installation flow
+## Quick install on Home Assistant OS
 
-1. Push this repository to GitHub.
-2. In Home Assistant, open Settings → Add-ons → Add-on Store → Repositories.
-3. Add the GitHub repository URL.
+1. Open Home Assistant.
+2. Go to Settings → Add-ons → Add-on Store.
+3. Add this repository under Repositories:
+   - `https://github.com/CorCorMS/grow-os-ha`
 4. Install `Grow OS HA v4 Installer`.
 5. Start the installer once.
-6. Check your configuration.
-7. Restart Home Assistant.
+6. Merge the generated snippet into your `configuration.yaml` if needed.
+7. Run a configuration check.
+8. Restart Home Assistant.
 
 The installer copies:
 
 - `packages/grow/*`
 - `lovelace/grow_dashboard.yaml`
-- `docs/configuration_snippet.yaml` as a merge helper into `/config`
-- an ESPHome example file if enabled in the installer options
+- a configuration merge snippet into `/config`
+- an optional sanitized ESPHome example
 
-## Important note about `configuration.yaml`
+## Manual install
 
-The installer does not blindly rewrite an unknown user configuration.
+Copy these into your Home Assistant `/config` directory:
 
-Instead it ships a ready-to-merge snippet:
+- [packages/grow](packages/grow)
+- [lovelace/grow_dashboard.yaml](lovelace/grow_dashboard.yaml)
+
+Then merge:
 
 - [docs/configuration_snippet.yaml](docs/configuration_snippet.yaml)
 
-If your Home Assistant already contains the required package and dashboard blocks, no extra change is needed.
+into your existing `configuration.yaml`.
 
-## v4.0 architecture rules
+## Repository structure
 
-- The Arbiter is the only component that makes control decisions.
-- Registers define policy and assignments.
-- Mirrors only expose values for UI and diagnostics.
-- Automations listen to Arbiter output and do not implement policy logic.
-- Plant Buddy is advisory only.
+- [packages/grow](packages/grow) — the current v4.0 runtime packages
+- [lovelace/grow_dashboard.yaml](lovelace/grow_dashboard.yaml) — dashboard v4
+- [grow_os_ha_installer](grow_os_ha_installer) — HAOS installer add-on
+- [ARCHITECTURE.md](ARCHITECTURE.md) — system design
+- [INSTALLATION.md](INSTALLATION.md) — installation details
+- [CHANGELOG.md](CHANGELOG.md) — version history
 
-## Git safety
+## Architecture in one glance
 
-The repository ignores:
+### Arbiter
 
-- private SSH keys
-- runtime Plant Buddy snapshot state
-- the live ESPHome node file with local secrets
+The Arbiter is the only place where environmental values, phase policy, tank state and locks become real switching decisions.
 
-Use the example ESPHome file as the Git-safe starting point.
+### Registers
+
+Registers store:
+
+- device assignments
+- sensor assignments
+- cycle timing
+- phase policy values
+- confirmed plant profiles
+
+### Mirrors
+
+Mirrors expose Arbiter and policy values for:
+
+- dashboard sections
+- debug views
+- energy overview
+- diagnostics
+
+### Plant Buddy
+
+Plant Buddy is advisory only. It evaluates:
+
+- temperature
+- humidity
+- light exposure
+- weighted soil moisture per plant
+
+and then publishes stress levels plus recommendations.
+
+## Safe for GitHub
+
+This repository is prepared so that local secrets and runtime state do not belong in Git:
+
+- private SSH keys are ignored
+- live ESPHome device config is ignored
+- runtime Plant Buddy snapshot state is ignored
+
+Use the safe example here:
+
+- [esphome/grow.v4.example.yaml](esphome/grow.v4.example.yaml)
+
+## Version
+
+Current public release target:
+
+- `v4.0.0`
