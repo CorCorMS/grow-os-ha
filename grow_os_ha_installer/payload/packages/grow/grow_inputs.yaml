@@ -1,0 +1,179 @@
+###############################################################################
+# GROW v4.0 — INPUTS
+# Purpose: Every editable Grow helper lives in this file.
+# These helpers configure devices and safety locks; they never make decisions.
+###############################################################################
+
+input_datetime:
+  # Cycle start drives the phase mirror; it is the only timing input.
+  grow_cycle_start:
+    name: Grow Cycle Start
+    has_date: true
+    has_time: true
+    initial: "2026-05-22 06:00:00"
+
+input_boolean:
+  # Locks are explicit operator safety overrides consumed by the Arbiter.
+  grow_master_lock:
+    name: Grow Master Lock
+    icon: mdi:lock-alert
+    initial: false
+  grow_heating_lock:
+    name: Grow Heating Lock
+    icon: mdi:radiator-disabled
+    initial: false
+  grow_ventilation_lock:
+    name: Grow Ventilation Lock
+    icon: mdi:fan-off
+    initial: false
+  grow_irrigation_lock:
+    name: Grow Irrigation Lock
+    icon: mdi:water-off
+    initial: false
+  grow_lighting_lock:
+    name: Grow Lighting Lock
+    icon: mdi:lightbulb-off
+    initial: false
+
+input_number:
+  # Energy tariff is informational only and never affects a control command.
+  # User-maintained electricity price used only for the Energy cost mirror.
+  grow_energy_price_kwh:
+    name: Grow Energy Price
+    icon: mdi:currency-eur
+    unit_of_measurement: "€/kWh"
+    min: 0
+    max: 2
+    step: 0.01
+    initial: 0.35
+    mode: box
+
+input_select:
+  # Device roles are populated from available HA switch/light entities.
+  grow_light_device_select:
+    name: Grow Light Device
+    icon: mdi:lightbulb
+    options:
+      - switch.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s
+  grow_heat_device_select:
+    name: Grow Heat Device
+    icon: mdi:fire
+    options:
+      - switch.waschkuche_ug_waschkuche_grow_geizung_shelly_1
+  grow_vent_device_select:
+    name: Grow Ventilation Device
+    icon: mdi:fan
+    options:
+      - switch.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s
+  grow_pump1_device_select:
+    name: Grow Pump 1 Device
+    icon: mdi:water-pump
+    options:
+      - switch.grow_pumpe_pflanze_1
+  grow_pump2_device_select:
+    name: Grow Pump 2 Device
+    icon: mdi:water-pump
+    options:
+      - switch.grow_pumpe_pflanze_2
+  # External measurement roles.  Options are populated from live HA sensors.
+  grow_temperature_sensor_select:
+    name: Grow Temperature Sensor
+    icon: mdi:thermometer
+    options:
+      - sensor.grow_grow_temperatur_unten
+  grow_humidity_sensor_select:
+    name: Grow Humidity Sensor
+    icon: mdi:water-percent
+    options:
+      - sensor.grow_grow_luftfeuchtigkeit_unten
+  grow_soil1_sensor_select:
+    name: Grow Soil Sensor Plant 1
+    icon: mdi:water-check
+    options:
+      - sensor.grow_bodenfeuchte_pflanze_1
+  grow_soil2_sensor_select:
+    name: Grow Soil Sensor Plant 2
+    icon: mdi:water-check
+    options:
+      - sensor.grow_bodenfeuchte_pflanze_2
+  grow_tank_sensor_select:
+    name: Grow Tank Level Sensor
+    icon: mdi:water-outline
+    options:
+      - sensor.grow_wassertank_fullstand
+  # Plant Buddy profiles are advisory only and never alter Arbiter policy.
+  grow_plant1_profile_select:
+    name: Grow Plant 1 Profile
+    icon: mdi:leaf-maple
+    options:
+      - universal_indoor
+      - warm_humid
+      - cool_dry
+  grow_plant2_profile_select:
+    name: Grow Plant 2 Profile
+    icon: mdi:leaf-maple
+    options:
+      - universal_indoor
+      - warm_humid
+      - cool_dry
+
+input_text:
+  # Confirmed mappings are the only values consumed by the Registry/Arbiter.
+  # Dropdown selections remain staged until the confirmation button is pressed.
+  grow_confirmed_light:
+    name: Confirmed Grow Light Device
+    max: 255
+    initial: switch.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s
+  grow_confirmed_heat:
+    name: Confirmed Grow Heat Device
+    max: 255
+    initial: switch.waschkuche_ug_waschkuche_grow_geizung_shelly_1
+  grow_confirmed_vent:
+    name: Confirmed Grow Vent Device
+    max: 255
+    initial: switch.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s
+  grow_confirmed_pump1:
+    name: Confirmed Grow Pump 1 Device
+    max: 255
+    initial: switch.grow_pumpe_pflanze_1
+  grow_confirmed_pump2:
+    name: Confirmed Grow Pump 2 Device
+    max: 255
+    initial: switch.grow_pumpe_pflanze_2
+  grow_confirmed_temperature:
+    name: Confirmed Grow Temperature Sensor
+    max: 255
+    initial: sensor.grow_grow_temperatur_unten
+  grow_confirmed_humidity:
+    name: Confirmed Grow Humidity Sensor
+    max: 255
+    initial: sensor.grow_grow_luftfeuchtigkeit_unten
+  grow_confirmed_soil1:
+    name: Confirmed Grow Soil 1 Sensor
+    max: 255
+    initial: sensor.grow_bodenfeuchte_pflanze_1
+  grow_confirmed_soil2:
+    name: Confirmed Grow Soil 2 Sensor
+    max: 255
+    initial: sensor.grow_bodenfeuchte_pflanze_2
+  grow_confirmed_tank:
+    name: Confirmed Grow Tank Sensor
+    max: 255
+    initial: sensor.grow_wassertank_fullstand
+  # Confirmed Plant Buddy profile names are persisted after explicit approval.
+  grow_confirmed_plant1_profile:
+    name: Confirmed Grow Plant 1 Profile
+    max: 64
+    initial: universal_indoor
+  grow_confirmed_plant2_profile:
+    name: Confirmed Grow Plant 2 Profile
+    max: 64
+    initial: universal_indoor
+
+input_button:
+  grow_confirm_device_mapping:
+    name: Apply Grow Device Mapping
+    icon: mdi:content-save-check
+  grow_confirm_plant_profiles:
+    name: Apply Plant Profiles
+    icon: mdi:content-save-alert

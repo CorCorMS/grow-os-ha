@@ -1,0 +1,15 @@
+# GROW v4.0 — repository hygiene.
+# Keep private credentials, runtime state and local editor data out of Git.
+
+private key.ppk
+public_key
+
+.DS_Store
+Thumbs.db
+
+.agents/
+
+packages/grow/grow_plant_buddy_snapshot.json
+grow_os_ha_installer/payload/packages/grow/grow_plant_buddy_snapshot.json
+
+esphome/grow.yaml

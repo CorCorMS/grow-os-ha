@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "version": "4.0",
+    "purpose": "Persistent device assignments chosen in the Grow v4 dashboard"
+  },
+  "light": "switch.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s",
+  "heat": "switch.waschkuche_ug_waschkuche_grow_geizung_shelly_1",
+  "vent": "switch.waschkuche_ug_waschkueche_ug_grow_belueftung_shelly_plug_s",
+  "pump1": "switch.grow_pumpe_pflanze_1",
+  "pump2": "switch.grow_pumpe_pflanze_2",
+  "temperature": "sensor.grow_grow_temperatur_unten",
+  "humidity": "sensor.grow_grow_luftfeuchtigkeit_unten",
+  "soil1": "sensor.grow_bodenfeuchte_pflanze_1",
+  "soil2": "sensor.grow_bodenfeuchte_pflanze_2",
+  "tank": "sensor.grow_wassertank_fullstand",
+  "plant1_profile": "universal_indoor",
+  "plant2_profile": "universal_indoor"
+}

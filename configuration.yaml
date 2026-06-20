@@ -1,0 +1,30 @@
+# GROW v4.0 — Home Assistant entry point.
+# Packages contain the single-source Arbiter architecture; only the v4
+# Energy-style dashboard is exposed in the sidebar.
+homeassistant:
+  packages: !include_dir_named packages/grow
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+# Tailscale funnel
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+
+lovelace:
+  dashboards:
+    grow-arbiter-v4:
+      mode: yaml
+      title: Grow v4.0
+      icon: mdi:cog-box
+      show_in_sidebar: true
+      filename: lovelace/grow_dashboard.yaml

@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "version": "4.0",
+    "purpose": "Advisory-only Plant Buddy reference profiles. These values do not change Arbiter policy."
+  },
+  "profiles": {
+    "universal_indoor": {
+      "label": "Universal Indoor",
+      "temperature_min": 20,
+      "temperature_max": 24,
+      "humidity_min": 55,
+      "humidity_max": 70,
+      "soil_min": 55,
+      "soil_max": 72,
+      "light_hours_min": 14,
+      "light_hours_max": 16
+    },
+    "warm_humid": {
+      "label": "Warm Humid",
+      "temperature_min": 22,
+      "temperature_max": 27,
+      "humidity_min": 60,
+      "humidity_max": 75,
+      "soil_min": 60,
+      "soil_max": 78,
+      "light_hours_min": 14,
+      "light_hours_max": 16
+    },
+    "cool_dry": {
+      "label": "Cool Dry",
+      "temperature_min": 18,
+      "temperature_max": 22,
+      "humidity_min": 40,
+      "humidity_max": 55,
+      "soil_min": 45,
+      "soil_max": 62,
+      "light_hours_min": 10,
+      "light_hours_max": 12
+    }
+  }
+}
