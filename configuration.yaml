@@ -1,5 +1,5 @@
-﻿# GROW OS HA v4.0 - Home Assistant entry point.
-# Packages contain the single-source Arbiter architecture; only the v4
+# GROW OS HA v4.1 - Home Assistant entry point.
+# Packages contain the single-source Arbiter architecture; only the v4.1
 # Energy-style dashboard is exposed in the sidebar.
 homeassistant:
   packages: !include_dir_named packages/grow_os_ha
@@ -28,6 +28,3 @@ lovelace:
       icon: mdi:cog-box
       show_in_sidebar: true
       filename: lovelace/grow_os_ha_dashboard.yaml
-
-
-
