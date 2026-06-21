@@ -122,6 +122,20 @@ Use the safe example here:
 
 - [esphome/grow_os_ha.example.yaml](esphome/grow_os_ha.example.yaml)
 
+## License
+
+This project is not open source.
+
+It is licensed for private personal use only. Use by companies, organizations,
+clubs, associations, communities, public institutions, commercial operators, or
+other group-based entities is not permitted without prior written permission.
+
+This restriction applies to all repository parts, including code, dashboards,
+automations, configuration, JSON data, installer files, and the control logic
+itself.
+
+See [LICENSE](LICENSE).
+
 ## Version
 
 Current public release target:
