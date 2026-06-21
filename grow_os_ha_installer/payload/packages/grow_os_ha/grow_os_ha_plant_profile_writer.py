@@ -1,5 +1,5 @@
 ﻿#!/usr/bin/env python3
-# GROW OS HA v4.0 - Atomic JSON persistence for confirmed Plant Buddy profiles.
+# GROW OS HA v4.1 - Atomic JSON persistence for confirmed Plant Buddy profiles.
 
 import json
 import os
