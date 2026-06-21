@@ -1,5 +1,5 @@
 ﻿###############################################################################
-# GROW OS HA v4.0 - ARBITER (SINGLE SOURCE OF TRUTH)
+# GROW OS HA v4.1 - ARBITER (SINGLE SOURCE OF TRUTH)
 # The Arbiter is the only component that evaluates policy registers and live
 # mirrors. Actuator automations only mirror its on/off commands.
 ###############################################################################
