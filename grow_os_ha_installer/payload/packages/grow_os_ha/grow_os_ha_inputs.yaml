@@ -1,5 +1,5 @@
 ﻿###############################################################################
-# GROW OS HA v4.0 - INPUTS
+# GROW OS HA v4.1 - INPUTS
 # Purpose: Every editable Grow helper lives in this file.
 # These helpers configure devices and safety locks; they never make decisions.
 ###############################################################################
@@ -17,23 +17,18 @@ input_boolean:
   grow_master_lock:
     name: Grow Master Lock
     icon: mdi:lock-alert
-    initial: false
   grow_heating_lock:
     name: Grow Heating Lock
     icon: mdi:radiator-disabled
-    initial: false
   grow_ventilation_lock:
     name: Grow Ventilation Lock
     icon: mdi:fan-off
-    initial: false
   grow_irrigation_lock:
     name: Grow Irrigation Lock
     icon: mdi:water-off
-    initial: false
   grow_lighting_lock:
     name: Grow Lighting Lock
     icon: mdi:lightbulb-off
-    initial: false
 
 input_number:
   # Energy tariff is informational only and never affects a control command.
