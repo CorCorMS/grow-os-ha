@@ -1,0 +1,8 @@
+{
+  "updated_at": "1970-01-01T00:00:00+00:00",
+  "master_lock": false,
+  "heating_lock": false,
+  "ventilation_lock": false,
+  "irrigation_lock": false,
+  "lighting_lock": false
+}
