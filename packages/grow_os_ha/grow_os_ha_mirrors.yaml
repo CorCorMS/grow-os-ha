@@ -1,5 +1,5 @@
 ﻿###############################################################################
-# GROW OS HA v4.0 - ARBITER MIRRORS
+# GROW OS HA v4.1 - ARBITER MIRRORS
 # Every value in this package is a read-only mirror of sensor.grow_arbiter_v4.
 # Dashboards and diagnostics use these sensors, never raw decision inputs.
 ###############################################################################
