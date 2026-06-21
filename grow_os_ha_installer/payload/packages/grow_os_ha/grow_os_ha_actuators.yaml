@@ -1,5 +1,5 @@
 ﻿###############################################################################
-# GROW OS HA v4.0 - ACTUATOR MIRRORS
+# GROW OS HA v4.1 - ACTUATOR MIRRORS
 # This automation contains no policy logic. Every service call mirrors an
 # explicit command attribute emitted by sensor.grow_arbiter_v4.
 ###############################################################################
