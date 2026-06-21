@@ -1,5 +1,5 @@
 ﻿###############################################################################
-# GROW OS HA v4.0 - PLANT BUDDY TRENDS (ADVISORY ONLY)
+# GROW OS HA v4.1 - PLANT BUDDY TRENDS (ADVISORY ONLY)
 # Rolling statistics and timed Plant Buddy reviews. These sensors do not feed
 # the Arbiter and never control hardware; they only make advice more useful.
 ###############################################################################
