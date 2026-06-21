@@ -1,7 +1,7 @@
-name: Grow OS HA v4 Installer
-version: 4.0.0
+name: Grow OS HA Installer
+version: 4.1.0
 slug: grow_os_ha_installer
-description: Installiert Grow OS HA v4.0 Dateien nach /config fuer Home Assistant OS.
+description: Installiert Grow OS HA v4.1 Dateien nach /config fuer Home Assistant OS.
 url: https://github.com/CorCorMS/grow-os-ha
 startup: once
 boot: manual
@@ -23,4 +23,3 @@ schema:
   overwrite_existing: bool
   create_backup: bool
   install_example_esphome: bool
-
