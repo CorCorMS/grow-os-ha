@@ -1,5 +1,5 @@
 ﻿#!/usr/bin/env python3
-# GROW OS HA v4.0 - Loads advisory Plant Buddy profiles from JSON persistence.
+# GROW OS HA v4.1 - Loads advisory Plant Buddy profiles from JSON persistence.
 
 import json
 from datetime import datetime, timezone
