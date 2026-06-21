@@ -1,5 +1,5 @@
 ﻿#!/usr/bin/env python3
-# GROW OS HA v4.0 - Atomic JSON persistence for Plant Buddy advisory snapshots.
+# GROW OS HA v4.1 - Atomic JSON persistence for Plant Buddy advisory snapshots.
 
 import json
 import os
