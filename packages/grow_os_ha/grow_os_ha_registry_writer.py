@@ -1,5 +1,5 @@
 ﻿#!/usr/bin/env python3
-# GROW OS HA v4.0 - Atomic JSON persistence for dashboard device assignments.
+# GROW OS HA v4.1 - Atomic JSON persistence for dashboard device assignments.
 
 import json
 import os
