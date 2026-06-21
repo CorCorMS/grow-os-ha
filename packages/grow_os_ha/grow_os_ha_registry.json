@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "version": "4.0",
-    "purpose": "Persistent device assignments chosen in the Grow v4 dashboard"
+    "version": "4.1",
+    "purpose": "Persistent device assignments chosen in the Grow OS HA v4.1 dashboard"
   },
   "light": "switch.waschkuche_ug_waschkuche_grow_beleuchtung_shelly_plug_s",
   "heat": "switch.waschkuche_ug_waschkuche_grow_geizung_shelly_1",
