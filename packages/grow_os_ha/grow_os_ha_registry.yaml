@@ -1,5 +1,5 @@
 ﻿###############################################################################
-# GROW OS HA v4.0 - REGISTERS AND MIRRORS
+# GROW OS HA v4.1 - REGISTERS AND MIRRORS
 # Single policy source for the Arbiter. Values are read-only policy registers;
 # actuators and UI mirrors consume them but never alter them.
 ###############################################################################
