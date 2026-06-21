@@ -1,5 +1,5 @@
 ﻿###############################################################################
-# GROW OS HA v4.0 - DEVICE MAPPING MIRROR
+# GROW OS HA v4.1 - DEVICE MAPPING MIRROR
 # The dashboard chooses devices. This package only persists the selection and
 # refreshes the registry; it never makes an environmental control decision.
 ###############################################################################
