@@ -1,0 +1,84 @@
+###############################################################################
+# GROW OS HA v4.1 - MANUAL LOCK PERSISTENCE
+# Manual safety locks are persisted to JSON and restored on startup.
+# The Arbiter still consumes only helper states; this package just preserves
+# operator overrides across restarts.
+###############################################################################
+
+command_line:
+  - sensor:
+      name: Grow Lock State Registry
+      unique_id: grow_lock_state_registry
+      command: python3 /config/packages/grow_os_ha/grow_os_ha_lock_state_loader.py
+      scan_interval: 60
+      value_template: "{{ value_json.state }}"
+      json_attributes:
+        - updated_at
+        - master_lock
+        - heating_lock
+        - ventilation_lock
+        - irrigation_lock
+        - lighting_lock
+
+shell_command:
+  grow_os_ha_lock_state_write: >-
+    python3 /config/packages/grow_os_ha/grow_os_ha_lock_state_writer.py
+    '{{ {
+      "updated_at": now().isoformat(),
+      "master_lock": is_state("input_boolean.grow_master_lock", "on"),
+      "heating_lock": is_state("input_boolean.grow_heating_lock", "on"),
+      "ventilation_lock": is_state("input_boolean.grow_ventilation_lock", "on"),
+      "irrigation_lock": is_state("input_boolean.grow_irrigation_lock", "on"),
+      "lighting_lock": is_state("input_boolean.grow_lighting_lock", "on")
+    } | to_json }}'
+
+automation:
+  - alias: Grow OS HA v4.1 Persist Manual Safety Locks
+    # Every operator lock change is written to JSON immediately so the next
+    # restart restores the exact same safety state.
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id:
+          - input_boolean.grow_master_lock
+          - input_boolean.grow_heating_lock
+          - input_boolean.grow_ventilation_lock
+          - input_boolean.grow_irrigation_lock
+          - input_boolean.grow_lighting_lock
+    action:
+      - service: shell_command.grow_os_ha_lock_state_write
+
+  - alias: Grow OS HA v4.1 Restore Manual Safety Locks
+    # Startup restoration reapplies only the persisted manual safety locks.
+    # It never calculates new policy values and does not affect device mapping.
+    mode: single
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - repeat:
+          count: 6
+          sequence:
+            - delay: "00:00:10"
+            - service: homeassistant.update_entity
+              target:
+                entity_id: sensor.grow_lock_state_registry
+            - repeat:
+                for_each:
+                  - { entity_id: input_boolean.grow_master_lock, attr: master_lock }
+                  - { entity_id: input_boolean.grow_heating_lock, attr: heating_lock }
+                  - { entity_id: input_boolean.grow_ventilation_lock, attr: ventilation_lock }
+                  - { entity_id: input_boolean.grow_irrigation_lock, attr: irrigation_lock }
+                  - { entity_id: input_boolean.grow_lighting_lock, attr: lighting_lock }
+                sequence:
+                  - choose:
+                      - conditions: >
+                          {{ state_attr('sensor.grow_lock_state_registry', repeat.item.attr) | string | lower == 'true' }}
+                        sequence:
+                          - service: input_boolean.turn_on
+                            target:
+                              entity_id: "{{ repeat.item.entity_id }}"
+                    default:
+                      - service: input_boolean.turn_off
+                        target:
+                          entity_id: "{{ repeat.item.entity_id }}"
