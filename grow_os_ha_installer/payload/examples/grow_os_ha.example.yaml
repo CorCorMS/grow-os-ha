@@ -1,4 +1,4 @@
-﻿# GROW OS HA v4.0 â€” sanitized ESPHome example.
+# GROW OS HA v4.1 - sanitized ESPHome example.
 # Replace secrets, encryption key and OTA password for your own device.
 
 esphome:
@@ -92,7 +92,7 @@ sensor:
     update_interval: 20s
 
   - platform: template
-    name: "Wassertank FÃ¼llstand"
+    name: "Wassertank Füllstand"
     id: water_level
     unit_of_measurement: "%"
     lambda: |-
@@ -127,5 +127,3 @@ switch:
 
 status_led:
   pin: GPIO2
-
-
