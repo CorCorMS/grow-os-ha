@@ -1,8 +1,8 @@
-﻿# GROW OS HA v4.0
+# GROW OS HA v4.1
 
 Arbiter-first grow automation for Home Assistant with a strict single-source-of-truth architecture.
 
-GROW OS HA v4.0 is built around one central idea:
+GROW OS HA v4.1 is built around one central idea:
 
 - one Arbiter makes all control decisions
 - registers hold policy and device assignments
@@ -17,17 +17,19 @@ GROW OS HA v4.0 is built around one central idea:
 - device and sensor mapping from inside Home Assistant
 - Plant Buddy stress scoring and recommendations
 - energy, cost and power visibility
+- JSON persistence for manual safety locks across restarts
 - Home Assistant OS installer add-on for easy deployment
 
-## Live v4.0 status
+## Live v4.1 status
 
-- Grow OS HA is running on the final v4 live structure in Home Assistant OS
+- Grow OS HA is running on the active v4.1 live structure in Home Assistant OS
 - active package path: `packages/grow_os_ha`
 - active dashboard path: `lovelace/grow_os_ha_dashboard.yaml`
 - dashboard id: `grow-os-ha`
 - Home Assistant configuration check passed
 - dashboard entities and project references were verified against the live HA registry
 - Grow-specific unit and statistics issues were cleaned up
+- manual safety locks are now persisted in JSON and restored after restart
 - final Grow-only debug finished without relevant open Grow errors
 
 ## Quick install on Home Assistant OS
@@ -36,7 +38,7 @@ GROW OS HA v4.0 is built around one central idea:
 2. Go to Settings -> Add-ons -> Add-on Store.
 3. Add this repository under Repositories:
    - `https://github.com/CorCorMS/grow-os-ha`
-4. Install `Grow OS HA v4 Installer`.
+4. Install `Grow OS HA Installer`.
 5. Start the installer once.
 6. Merge the generated snippet into your `configuration.yaml` if needed.
 7. Run a configuration check.
@@ -64,8 +66,8 @@ into your existing `configuration.yaml`.
 
 ## Repository structure
 
-- [packages/grow_os_ha](packages/grow_os_ha) - the current v4.0 runtime packages
-- [lovelace/grow_os_ha_dashboard.yaml](lovelace/grow_os_ha_dashboard.yaml) - dashboard v4
+- [packages/grow_os_ha](packages/grow_os_ha) - the current v4.1 runtime packages
+- [lovelace/grow_os_ha_dashboard.yaml](lovelace/grow_os_ha_dashboard.yaml) - dashboard v4.1
 - [grow_os_ha_installer](grow_os_ha_installer) - HAOS installer add-on
 - [ARCHITECTURE.md](ARCHITECTURE.md) - system design
 - [INSTALLATION.md](INSTALLATION.md) - installation details
@@ -86,6 +88,7 @@ Registers store:
 - cycle timing
 - phase policy values
 - confirmed plant profiles
+- persisted manual safety lock state
 
 ### Mirrors
 
@@ -123,4 +126,4 @@ Use the safe example here:
 
 Current public release target:
 
-- `v4.0.0`
+- `v4.1.0`
