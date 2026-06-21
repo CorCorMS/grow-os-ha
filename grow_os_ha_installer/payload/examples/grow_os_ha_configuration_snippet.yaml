@@ -1,4 +1,4 @@
-﻿# GROW OS HA v4.0 â€” configuration merge snippet.
+# GROW OS HA v4.1 - configuration merge snippet.
 # Merge these blocks into your existing /config/configuration.yaml if they are
 # not already present. Do not duplicate top-level keys if you already have them.
 
@@ -13,6 +13,3 @@ lovelace:
       icon: mdi:cog-box
       show_in_sidebar: true
       filename: lovelace/grow_os_ha_dashboard.yaml
-
-
-
