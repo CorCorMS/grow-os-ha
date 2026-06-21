@@ -1,4 +1,12 @@
-﻿# Changelog
+# Changelog
+
+## v4.1.0
+
+- manual safety locks are now persisted in JSON
+- manual safety locks are restored automatically after Home Assistant restarts
+- lock restore timing was hardened for early startup phases
+- lock persistence was added to the installer payload
+- repository documentation, installer texts and runtime headers were aligned to v4.1
 
 ## v4.0.0
 
