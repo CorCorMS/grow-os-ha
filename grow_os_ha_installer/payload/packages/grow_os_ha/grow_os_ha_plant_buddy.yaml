@@ -1,5 +1,5 @@
 ﻿###############################################################################
-# GROW OS HA v4.0 - PLANT BUDDY (ADVISORY ONLY)
+# GROW OS HA v4.1 - PLANT BUDDY (ADVISORY ONLY)
 # The Plant Buddy reads the policy register, Arbiter values and confirmed
 # advisory plant profiles. It never changes a switch, helper, policy value
 # or Arbiter command.
