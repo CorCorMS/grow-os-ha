@@ -1,6 +1,6 @@
-﻿# Grow OS HA v4 Installer
+# Grow OS HA Installer
 
-Home Assistant OS add-on that copies the current Grow OS HA v4.0 payload into `/config`.
+Home Assistant OS add-on that copies the current Grow OS HA v4.1 payload into `/config`.
 
 ## What it installs
 
@@ -21,5 +21,3 @@ Home Assistant OS add-on that copies the current Grow OS HA v4.0 payload into `/
 3. Merge the generated configuration snippet if your config does not yet include the package and dashboard blocks.
 4. Check configuration.
 5. Restart Home Assistant.
-
-
