@@ -1,5 +1,5 @@
 ﻿#!/usr/bin/with-contenv bashio
-# GROW OS HA v4.0 â€” HAOS installer add-on.
+# GROW OS HA v4.1 - HAOS installer add-on.
 # Copies the repository payload into /config without trying to guess every
 # detail of a foreign configuration.yaml structure.
 
@@ -7,7 +7,7 @@ set -euo pipefail
 
 CONFIG_DIR="/homeassistant"
 PAYLOAD_DIR="/payload"
-BACKUP_DIR="${CONFIG_DIR}/grow_os_ha_v4_backups/$(date +%Y%m%d-%H%M%S)"
+BACKUP_DIR="${CONFIG_DIR}/grow_os_ha_v4_1_backups/$(date +%Y%m%d-%H%M%S)"
 
 OVERWRITE="$(bashio::config 'overwrite_existing')"
 CREATE_BACKUP="$(bashio::config 'create_backup')"
@@ -33,7 +33,7 @@ copy_file() {
     bashio::log.info "Installed: ${target}"
 }
 
-bashio::log.info "Installing Grow OS HA v4.0 payload..."
+bashio::log.info "Installing Grow OS HA v4.1 payload..."
 
 mkdir -p "${CONFIG_DIR}/packages/grow_os_ha" "${CONFIG_DIR}/lovelace"
 
@@ -63,7 +63,7 @@ else
     bashio::log.warning "Merge /config/grow_os_ha_configuration_snippet.yaml into /config/configuration.yaml."
 fi
 
-bashio::log.info "Grow OS HA v4.0 installer finished."
+bashio::log.info "Grow OS HA v4.1 installer finished."
 bashio::log.info "Next step: run Home Assistant configuration check, then restart Home Assistant."
 
 
